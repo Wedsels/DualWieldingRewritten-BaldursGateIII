@@ -1,0 +1,101 @@
+local Common = require( "Common" )
+
+local function QuickPassive( name, boost )
+    local passive = Common.CreateStat( name, "PassiveData" )
+    passive.Boosts = boost
+    passive.Properties = "IsHidden"
+end
+
+Ext.Events.StatsLoaded:Subscribe(
+    function()
+        QuickPassive( "Penalty_DualWielding", "IF(not HasPassive('FightingStyle_TwoWeaponFighting',context.Source));AC(" .. Common.Debt .. ")" )
+        QuickPassive( "Ranged_DualWielding", "RollBonus(RangedWeaponAttack," .. Common.Debt .. ");RollBonus(RangedOffHandWeaponAttack," .. Common.Debt .. ")" )
+        QuickPassive( "Melee_DualWielding", "RollBonus(MeleeWeaponAttack," .. Common.Debt .. ");RollBonus(MeleeOffHandWeaponAttack," .. Common.Debt .. ")" )
+        QuickPassive( "Base_DualWielding", "TwoWeaponFighting()" )
+
+        Common.InitializeSpellLists()
+
+        for name, type in pairs( Common.Spells ) do
+            local spell = Ext.Stats.Get( name )
+
+            spell.DualWieldingUseCosts = ""
+            spell.TooltipDamageList = string.gsub( spell.TooltipDamageList, "Off", "Disabled" )
+            spell.TooltipAttackSave = string.gsub( spell.TooltipAttackSave, "Off", "Disabled" )
+            spell.DescriptionParams = string.gsub( spell.DescriptionParams, "Off", "Disabled" )
+
+            local off = Common.CreateStat( name .. Common.Off, "SpellData", name )
+
+            if type == 0 then
+                spell.DualWieldingSpellAnimation =
+                    "73afb4e5-8cfe-4479-95cf-16889597fee3,,;" ..
+                    "7e67bfd0-2fc2-4d10-bed5-cfda9e660de5,,;" ..
+                    "eb054308-7fce-4b85-bf4c-7a0031fda7ac,,;" ..
+                    "0b0dc35b-4953-45c0-a9eb-8d3fef5e798a,,;" ..
+                    "6ec808e1-e128-44ef-9361-a713bf86de8f,,;" ..
+                    "b2e9c771-3497-444c-b360-23b4441985a1,,;" ..
+                    "f920a0a6-f257-4ce4-8d17-2dcaa7bb7bbb,,;,,;,,"
+                off.SpellAnimation =
+                    "661cae72-6bc9-4e6d-98e2-89db9e03d6b5,,;" ..
+                    "bf6ea370-a917-45b3-908d-35729c98db10,,;" ..
+                    "4a789a60-04b8-4a26-b476-65cf26ca558b,,;" ..
+                    "a11b8bcb-ba24-417a-aa86-4e4379c41ee2,,;" ..
+                    "5eb39acc-ecbd-4940-84c8-a1e13668b865,,;,,;,,;,,;,,"
+                off.DualWieldingSpellAnimation = off.SpellAnimation
+            elseif type == 1 then
+                spell.DualWieldingSpellAnimation =
+                    "8b8bb757-21ce-4e02-a2f3-97d55cf2f90b,,;" ..
+                    "6606c30b-be1c-4f17-ae6b-1a591c80b18c," ..
+                    "366693ee-d97f-4294-a4dd-a2145ddc4e6a," ..
+                    "9f2d32b9-529a-4b75-b3df-6e1ae1395280;" ..
+                    "f4ac302b-1569-404f-bd52-1fe443e265df," ..
+                    "479ee5da-2967-41e1-b7d1-a94e864a5f25," ..
+                    "79323098-edb3-4993-ba50-9b5f705e9878;" ..
+                    "e8a5c57f-855b-4227-acaa-11e8ce8d7d64," ..
+                    "b5cb923d-0c08-4c20-89a9-44b9bf98c6cb," ..
+                    "6282d127-0c06-4365-9d53-6f32ef350127;" ..
+                    "7bb52cd4-0b1c-4926-9165-fa92b75876a3,,;" ..
+                    "2b81c18b-9698-4262-a623-932c2bb1296d," ..
+                    "ecbf9949-3b33-432c-b735-e47aaed0924a," ..
+                    "e71a7c08-fdc1-4a0b-9a90-1c793c58553c;" ..
+                    "0b07883a-08b8-43b6-ac18-84dc9e84ff50,,;,,;,,"
+                off.SpellAnimation =
+                    "8b8bb757-21ce-4e02-a2f3-97d55cf2f90b,,;" ..
+                    "c1df9aea-8be9-4de3-bcbc-4e4c1e44dc37,,;" ..
+                    "722df2d7-7898-4b0b-b930-5a850b55ccf0,,;" ..
+                    "a693a7c3-e7e7-4edb-98dd-db5fd700663f,,;" ..
+                    "7bb52cd4-0b1c-4926-9165-fa92b75876a3,,;" ..
+                    "35f5cba8-3706-46d5-9a1e-2def9ba22473,,;" ..
+                    "0b07883a-08b8-43b6-ac18-84dc9e84ff50,,;,,;,,"
+                off.DualWieldingSpellAnimation = off.SpellAnimation
+            end
+
+            off.UseCosts = ""
+            off.HitCosts = ""
+            off.RitualCosts = ""
+            off.SpellContainerID = ""
+            if string.find( off.AlternativeCastTextEvents, "CastOffhand" ) then
+                off.CastTextEvent = "CastOffhand"
+            end
+
+            local flags = spell.SpellFlags
+            for _,i in ipairs( flags ) do
+                if i == "CanDualWield" then
+                    table.remove( flags, _ )
+                end
+            end
+            off.SpellFlags = flags
+
+            table.insert( flags, "CanDualWield" )
+            spell.SpellFlags = flags
+
+            Common.CleanSpell( off, name, false )
+            Common.CleanSpell( spell, name, true )
+        end
+
+        for _,name in pairs( Ext.Stats.GetStats( "Character" ) ) do
+            local ent = Ext.Stats.Get( name )
+
+            ent.Passives = "Base_DualWielding;" .. ent.Passives
+        end
+    end
+)
