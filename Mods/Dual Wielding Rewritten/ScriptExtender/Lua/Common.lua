@@ -15,7 +15,7 @@ Common.InitializeSpellLists = function()
     for _,name in pairs( Ext.Stats.GetStats( "SpellData" ) ) do
         local spell = Ext.Stats.Get( name )
 
-        if string.find( name, "AttackOfOpportunity" ) or Common.OffHandSpell( name ) or tostring( spell.CastTextEvent ) == "CastOffHand" then
+        if string.find( name, "AttackOfOpportunity" ) or Common.OffHandSpell( name ) or tostring( spell.CastTextEvent ) == "CastOffhand" then
         elseif spell.SpellType == "Projectile" and Common.Contains( spell.WeaponTypes, "Ammunition" ) then
             Common.Spells[ name ] = 0
         elseif spell.SpellType == "Target" and Common.Contains( spell.WeaponTypes, "Melee" ) then
