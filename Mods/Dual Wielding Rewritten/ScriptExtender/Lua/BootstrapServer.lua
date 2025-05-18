@@ -55,7 +55,7 @@ Ext.Osiris.RegisterListener(
     "after",
     function( ... )
         for _,p in pairs( Osi.DB_Players:Get( nil ) ) do
-            local char = p[ 1 ];
+            local char = p[ 1 ]
 
             Common.CheckDualStatus( char )
         end
