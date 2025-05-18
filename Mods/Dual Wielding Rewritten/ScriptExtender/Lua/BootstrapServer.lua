@@ -67,11 +67,5 @@ Ext.Osiris.RegisterListener(
         )
 
         Ext.Entity.OnChange( "DualWielding", function( e ) Common.CheckDualStatus( e.Uuid.EntityUuid ) end )
-
-        for _,name in pairs( Ext.Stats.GetStats( "Object" ) ) do
-            if string.find( name, "Arrow" ) then
-                Osi.TemplateAddTo( Ext.Stats.Get( name ).RootTemplate, Osi.GetHostCharacter(), 1 )
-            end
-        end
     end
 )
