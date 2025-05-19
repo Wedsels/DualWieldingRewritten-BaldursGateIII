@@ -71,7 +71,9 @@ Ext.Events.StatsLoaded:Subscribe(
 
             off.UseCosts = ""
             off.HitCosts = ""
+            off.MemoryCost = 0
             off.RitualCosts = ""
+            off.ContainerSpells = ""
             off.SpellContainerID = ""
             off.RequirementConditions = ""
             if string.find( off.AlternativeCastTextEvents, "CastOffhand" ) then
