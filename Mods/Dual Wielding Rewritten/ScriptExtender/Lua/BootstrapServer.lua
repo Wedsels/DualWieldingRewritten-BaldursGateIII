@@ -27,10 +27,7 @@ Ext.Osiris.RegisterListener(
         local type = Common.Spells[ spell ]
 
         if not type or Common.OffHandSpell( spell ) then
-            if not Common.ActiveDebuff then
-                Osi.AddPassive( caster, "Penalty_DualWielding" )
-            end
-            Common.ActiveDebuff = true
+            Osi.AddPassive( caster, "Penalty_DualWielding" )
             Osi.ObjectTimerCancel( caster, Common.Key )
             Osi.ObjectTimerLaunch( caster, Common.Key, 5000, 1 )
             return

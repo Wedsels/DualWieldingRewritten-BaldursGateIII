@@ -1,11 +1,10 @@
 local Common = {}
 
-Common.ActiveDebuff = false
 Common.Ranged = false
 Common.Melee = false
 Common.Debt = -3
 Common.Key = "DualWieldingBalance"
-Common.Off = "_DualOffhand"
+Common.Off = "_DualOffHand"
 
 Common.Spells = {}
 
@@ -31,13 +30,6 @@ Common.Contains = function( tbl, val )
         end
     end
     return false
-end
-
-Common.GetDebt = function( p )
-    if Osi.HasPassive( p, "FightingStyle_TwoWeaponFighting" ) == 1 then
-        return Common.Debt + 3
-    end
-    return Common.Debt
 end
 
 Common.OffHandSpell = function( name )
@@ -119,7 +111,6 @@ end
 
 Common.RefreshDualStatus = function( p )
     Common.UnlearnOffHand( p )
-    Common.ActiveDebuff = false
     Osi.RemovePassive( p, "Penalty_DualWielding" )
     Osi.ObjectTimerCancel( p, Common.Key )
 end
@@ -129,8 +120,6 @@ Common.CheckDualStatus = function( p )
     if not ent then return end
     local dual = ent:GetComponent( "DualWielding" )
     if not dual then return end
-
-    local passive = Common.GetDebt( p ) == 0
 
     if not dual.RangedUI then
         Common.Ranged = false
@@ -146,13 +135,13 @@ Common.CheckDualStatus = function( p )
         Common.Melee = dual.MeleeToggledOn
     end
 
-    if Common.Ranged and not passive then
+    if Common.Ranged then
         Osi.AddPassive( p, "Ranged_DualWielding" )
     else
         Osi.RemovePassive( p, "Ranged_DualWielding" )
     end
 
-    if Common.Melee and not passive then
+    if Common.Melee then
         Osi.AddPassive( p, "Melee_DualWielding" )
     else
         Osi.RemovePassive( p, "Melee_DualWielding" )

@@ -8,9 +8,10 @@ end
 
 Ext.Events.StatsLoaded:Subscribe(
     function()
-        QuickPassive( "Penalty_DualWielding", "IF(not HasPassive('FightingStyle_TwoWeaponFighting',context.Source));AC(" .. Common.Debt .. ")" )
-        QuickPassive( "Ranged_DualWielding", "RollBonus(RangedWeaponAttack," .. Common.Debt .. ");RollBonus(RangedOffHandWeaponAttack," .. Common.Debt .. ")" )
-        QuickPassive( "Melee_DualWielding", "RollBonus(MeleeWeaponAttack," .. Common.Debt .. ");RollBonus(MeleeOffHandWeaponAttack," .. Common.Debt .. ")" )
+        local pcheck = "IF(not HasPassive('FightingStyle_TwoWeaponFighting',context.Source)):"
+        QuickPassive( "Penalty_DualWielding", pcheck .. "AC(" .. Common.Debt .. ")" )
+        QuickPassive( "Ranged_DualWielding", pcheck .. "RollBonus(RangedWeaponAttack," .. Common.Debt .. ");" .. pcheck .. "RollBonus(RangedOffHandWeaponAttack," .. Common.Debt .. ")" )
+        QuickPassive( "Melee_DualWielding", pcheck .. "RollBonus(MeleeWeaponAttack," .. Common.Debt .. ");" .. pcheck .. "RollBonus(MeleeOffHandWeaponAttack," .. Common.Debt .. ")" )
         QuickPassive( "Base_DualWielding", "TwoWeaponFighting()" )
 
         Common.InitializeSpellLists()
