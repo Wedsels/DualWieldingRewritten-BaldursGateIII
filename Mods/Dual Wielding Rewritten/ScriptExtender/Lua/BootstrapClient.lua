@@ -3,7 +3,6 @@ local _F = require( "Server.Functions" )( _V )
 
 Ext.Events.StatsLoaded:Subscribe(
     function()
-
         for name, type in pairs( _V.Spells ) do
             local spell = Ext.Stats.Get( name )
 

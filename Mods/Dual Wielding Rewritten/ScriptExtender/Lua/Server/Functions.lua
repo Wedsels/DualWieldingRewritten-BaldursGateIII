@@ -27,8 +27,6 @@ return function( _V )
         local dual = _V.Duals[ uuid ]
         if not dual then return end
 
-        remove = dual.Boost[ boost ] and remove
-
         local boo = _V.Boosts( uuid )[ boost ]
         if not remove and boo == dual.Boost[ boost ] then return end
 
@@ -41,6 +39,7 @@ return function( _V )
         else
             dual.Boost[ boost ] = boo
             Osi.AddBoosts( uuid, boo, _V.Key, "" )
+            print("add ", uuid, " ", boo)
         end
     end
 
