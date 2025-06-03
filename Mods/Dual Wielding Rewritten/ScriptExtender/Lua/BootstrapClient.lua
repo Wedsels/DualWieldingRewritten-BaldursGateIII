@@ -1,22 +1,10 @@
-local Common = require( "Common" )
-
-local function QuickPassive( name, boost )
-    local passive = Common.CreateStat( name, "PassiveData" )
-    passive.Boosts = boost
-    passive.Properties = "IsHidden"
-end
+local _V = require( "Server.Variables" )
+local _F = require( "Server.Functions" )( _V )
 
 Ext.Events.StatsLoaded:Subscribe(
     function()
-        local pcheck = "IF(not HasPassive('FightingStyle_TwoWeaponFighting',context.Source)):"
-        QuickPassive( "Penalty_DualWielding", pcheck .. "AC(" .. Common.Debt .. ")" )
-        QuickPassive( "Ranged_DualWielding", pcheck .. "RollBonus(RangedWeaponAttack," .. Common.Debt .. ");" .. pcheck .. "RollBonus(RangedOffHandWeaponAttack," .. Common.Debt .. ")" )
-        QuickPassive( "Melee_DualWielding", pcheck .. "RollBonus(MeleeWeaponAttack," .. Common.Debt .. ");" .. pcheck .. "RollBonus(MeleeOffHandWeaponAttack," .. Common.Debt .. ")" )
-        QuickPassive( "Base_DualWielding", "TwoWeaponFighting()" )
 
-        Common.InitializeSpellLists()
-
-        for name, type in pairs( Common.Spells ) do
+        for name, type in pairs( _V.Spells ) do
             local spell = Ext.Stats.Get( name )
 
             spell.DualWieldingUseCosts = ""
@@ -24,9 +12,9 @@ Ext.Events.StatsLoaded:Subscribe(
             spell.TooltipAttackSave = string.gsub( spell.TooltipAttackSave, "Off", "Disabled" )
             spell.DescriptionParams = string.gsub( spell.DescriptionParams, "Off", "Disabled" )
 
-            local off = Common.CreateStat( name .. Common.Off, "SpellData", name )
+            local off = _F.CreateStat( name .. _V.Off, "SpellData", name )
 
-            if type == 0 then
+            if type == false then
                 spell.DualWieldingSpellAnimation =
                     "73afb4e5-8cfe-4479-95cf-16889597fee3,,;" ..
                     "7e67bfd0-2fc2-4d10-bed5-cfda9e660de5,,;" ..
@@ -42,7 +30,8 @@ Ext.Events.StatsLoaded:Subscribe(
                     "a11b8bcb-ba24-417a-aa86-4e4379c41ee2,,;" ..
                     "5eb39acc-ecbd-4940-84c8-a1e13668b865,,;,,;,,;,,;,,"
                 off.DualWieldingSpellAnimation = off.SpellAnimation
-            elseif type == 1 then
+                off.DisplayName = "h68d30360g0be4g4c36ga657geb25bdbb4daa;2"
+            elseif type == true then
                 spell.DualWieldingSpellAnimation =
                     "8b8bb757-21ce-4e02-a2f3-97d55cf2f90b,,;" ..
                     "6606c30b-be1c-4f17-ae6b-1a591c80b18c," ..
@@ -68,6 +57,7 @@ Ext.Events.StatsLoaded:Subscribe(
                     "35f5cba8-3706-46d5-9a1e-2def9ba22473,,;" ..
                     "0b07883a-08b8-43b6-ac18-84dc9e84ff50,,;,,;,,"
                 off.DualWieldingSpellAnimation = off.SpellAnimation
+                off.DisplayName = "h3b04f82ag28deg481agb077gaacc255f4caf;1"
             end
 
             off.UseCosts = ""
@@ -92,14 +82,8 @@ Ext.Events.StatsLoaded:Subscribe(
             table.insert( flags, "CanDualWield" )
             spell.SpellFlags = flags
 
-            Common.CleanSpell( off, name, false )
-            Common.CleanSpell( spell, name, true )
-        end
-
-        for _,name in pairs( Ext.Stats.GetStats( "Character" ) ) do
-            local ent = Ext.Stats.Get( name )
-
-            ent.Passives = "Base_DualWielding;" .. ent.Passives
+            _F.CleanSpell( off, name, false )
+            _F.CleanSpell( spell, name, true )
         end
     end
 )
