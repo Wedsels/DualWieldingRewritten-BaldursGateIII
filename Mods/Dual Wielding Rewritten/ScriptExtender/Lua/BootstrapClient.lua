@@ -8,7 +8,7 @@ Ext.Events.StatsLoaded:Subscribe(
 
             local melee = false
             for _,p in ipairs( item[ "Weapon Properties" ] ) do
-                if p == "Melee" then
+                if p == "Melee" or p == "Light" then
                     melee = true
                     item.BoostsOnEquipOffHand = item.BoostsOnEquipMainHand
                     item.PassivesOffHand = item.PassivesMainHand
