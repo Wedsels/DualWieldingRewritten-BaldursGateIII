@@ -1,6 +1,31 @@
 --- @param _V _V
 --- @param _F _F
 return function( _V,  _F )
+    Ext.Entity.OnCreate("SpellCastIsCasting",
+        function()
+            for uuid,type in pairs( _V.Hips ) do
+                local data = Ext.StaticData.Get( uuid, "EquipmentType" )
+                data.WeaponType_OneHanded = type
+            end
+        end
+    )
+
+    Ext.Osiris.RegisterListener(
+        "UsingSpell",
+        5,
+        "after",
+        function()
+            Ext.Timer.WaitFor( 120,
+                function()
+                    for uuid,_ in pairs( _V.Hips ) do
+                        local data = Ext.StaticData.Get( uuid, "EquipmentType" )
+                        data.WeaponType_OneHanded = "Small1H"
+                    end
+                end
+            )
+        end
+    )
+
     Ext.Osiris.RegisterListener(
         "CastedSpell",
         5,
@@ -16,7 +41,7 @@ return function( _V,  _F )
             local type = _V.Spells[ spell ]
 
             if _F.OffHandSpell( spell ) then
-                _F.CheckBoost( uuid, "Penalty" )
+                _F.Boost( uuid, "Penalty" ).Apply()
                 dual.Time = Ext.Utils.MonotonicTime()
                 _F.ExchangeSpell( uuid, spell )
                 return
@@ -45,8 +70,8 @@ return function( _V,  _F )
 
             Ext.Loca.UpdateTranslatedString(
                 "h5153f9f3g7dcbg45d9gae1bgd19f398959a2",
-                "Become more adept at twin weapons, no longer suffering a penalty of " .. _V.Debt .. " <LSTag Tooltip=\"AttackRoll\">Accuracy</LSTag> while dual wielding.\n\n" ..
-                "Improve stability and coordination, using the free <LSTag Tooltip=\"Action\">Action</LSTag> off hand attack no longer reduces <LSTag Tooltip=\"ArmourClass\">Armour Class</LSTag> by " .. _V.Debt .. " for a turn."
+                "Become more adept at twin weapons, no longer suffering a penalty of " .. _V.Penalty .. " <LSTag Tooltip=\"AttackRoll\">Accuracy</LSTag> while dual wielding.\n\n" ..
+                "Improve stability and coordination, using the free <LSTag Tooltip=\"Action\">Action</LSTag> off hand attack no longer reduces <LSTag Tooltip=\"ArmourClass\">Armour Class</LSTag> by " .. _V.Penalty .. " for a turn."
             )
 
             Ext.Entity.OnChange( "DualWielding", function( e ) _F.CheckDualStatus( _F.UUID( e ) ) end )
@@ -58,7 +83,7 @@ return function( _V,  _F )
             for uuid,wield in pairs( _V.Duals ) do
                 if not _F.InCombat( uuid ) then
                     if wield.Time > 0 and Ext.Utils.MonotonicTime() - wield.Time > 5000 then
-                        _F.CheckBoost( uuid, "Penalty", true )
+                        _F.Boost( uuid, "Penalty" ).Remove()
                         wield.Time = -1
                     end
 

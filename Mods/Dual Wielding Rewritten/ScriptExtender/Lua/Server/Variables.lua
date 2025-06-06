@@ -1,9 +1,14 @@
 --- @class _V
 local _V = {}
 
-_V.Debt = -3
-_V.Key = "DualWieldingBalance"
 _V.Off = "_DualOffHand"
+_V.Key = "DualWieldingBalance"
+_V.Die = { "d4", "d6", "d8", "d10", "d12" }
+_V.Penalty = -3
+_V.TwoWeaponFighting = 3
+
+--- @type table< string, string >
+_V.Hips = {}
 
 --- @class Data
 --- @field Charge number
@@ -20,7 +25,10 @@ _V.Off = "_DualOffHand"
 _V.Duals = {}
 
 _V.Boosts = function( uuid )
-    local debt = Osi.HasPassive( uuid, "FightingStyle_TwoWeaponFighting" ) == 1 and 0 or _V.Debt
+    local debt = _V.Penalty
+    if Osi.HasPassive( uuid, "FightingStyle_TwoWeaponFighting" ) == 1 then
+        debt = debt + _V.TwoWeaponFighting
+    end
 
     return {
         Base = "TwoWeaponFighting()",

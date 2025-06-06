@@ -1,0 +1,28 @@
+{
+    "ModName": "Dual Wielding Rewritten",
+    "ModDescription": "",
+    "Optional": true,
+    "SchemaVersion": 1,
+    "Tabs": [
+        {
+            "TabName": "General",
+            "TabId": "General",
+            "Settings": [
+                {
+                    "Id": "Penalty",
+                    "Name": "Penalty",
+                    "Type": "int",
+                    "Default": -3,
+                    "Description": "The AC and Attack Roll penalties from Dual Wielding."
+                },
+                {
+                    "Id": "TwoWeaponFighting",
+                    "Name": "Two Weapon Fighting",
+                    "Type": "int",
+                    "Default": 3,
+                    "Description": "The AC and Attack Roll bonus from Two Weapon Fighting Fighting Style."
+                }
+            ]
+        }
+    ]
+}

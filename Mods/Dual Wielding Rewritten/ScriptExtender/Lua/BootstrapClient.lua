@@ -3,7 +3,57 @@ local _F = require( "Server.Functions" )( _V )
 
 Ext.Events.StatsLoaded:Subscribe(
     function()
-        for name, type in pairs( _V.Spells ) do
+        for _,i in ipairs( Ext.Stats.GetStats( "Weapon" ) ) do
+            local item = Ext.Stats.Get( i )
+
+            local melee = false
+            for _,p in ipairs( item[ "Weapon Properties" ] ) do
+                if p == "Melee" then
+                    melee = true
+                    item.BoostsOnEquipOffHand = item.BoostsOnEquipMainHand
+                    item.PassivesOffHand = item.PassivesMainHand
+                elseif p == "Versatile" then
+                    goto continue
+                end
+            end
+
+            if not melee then goto continue end
+
+            local tbl = item[ "Weapon Properties" ]
+            for _,p in ipairs( tbl ) do
+                if p == "Twohanded" then
+                    table.remove( tbl, _ )
+                    break
+                end
+            end
+            table.insert( tbl, "Versatile" )
+            item[ "Weapon Properties" ] = tbl
+
+            local count, die = item.Damage:match( "^(%d+)(d%d+)$" )
+            local index = _F.Index( _V.Die, die )
+            local damage
+            local type = false
+            if index then
+                damage = _V.Die[ index + 1 ]
+                if not damage then
+                    damage = _V.Die[ index - 1 ]
+                    type = true
+                end
+                damage = count .. damage
+            else
+                damage = item.Damage
+            end
+            if type then
+                item.VersatileDamage = item.Damage
+                item.Damage = damage
+            else
+                item.VersatileDamage = damage
+            end
+
+            :: continue ::
+        end
+
+        for name,type in pairs( _V.Spells ) do
             local spell = Ext.Stats.Get( name )
 
             spell.DualWieldingUseCosts = ""

@@ -1,5 +1,7 @@
-A rework of dual wielding, allowing for more freedom and control, and a wider variety of skills to be affected by dual wielding.
+All melee weapons can be dual and varsatile wielded. Properly hip sheathed one handed weapons, with matching animations. Weapon based skill casts can be repeated from the off-hand.
 Compatible with any mod, and their added spells.
+
+Optional MCM integration to modify the penalty of dual wielding, and bonus given from two weapon fighting.
 
 When dual wielding any spells or attacks cast with the main hand weapon generate a free off hand attack which mirrors the attack you used, it costs no resources to use, and allows you to choose another target with the same spell but in your off hand.
 

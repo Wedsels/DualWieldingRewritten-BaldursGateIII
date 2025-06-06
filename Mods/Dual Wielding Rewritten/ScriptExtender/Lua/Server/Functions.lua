@@ -23,28 +23,46 @@ return function( _V )
         end
     end
 
-    _F.CheckBoost = function( uuid, boost, remove )
-        local dual = _V.Duals[ uuid ]
-        if not dual then return end
-
-        local boo = _V.Boosts( uuid )[ boost ]
-        if not remove and boo == dual.Boost[ boost ] then return end
-
-        if dual.Boost[ boost ] then
-            Osi.RemoveBoosts( uuid, dual.Boost[ boost ], 0, _V.Key, "" )
-        end
-
-        if remove then
-            dual.Boost[ boost ] = ""
-        else
-            dual.Boost[ boost ] = boo
-            Osi.AddBoosts( uuid, boo, _V.Key, "" )
-            print("add ", uuid, " ", boo)
+    _F.Index = function( tbl, val )
+        for i,v in ipairs( tbl ) do
+            if val == v then
+                return i
+            end
         end
     end
 
+    _F.Boost = function( uuid, boost )
+        local function Check( type )
+            local dual = _V.Duals[ uuid ]
+            if not dual then return end
+
+            local boo = _V.Boosts( uuid )[ boost ]
+            if type ~= 2 and boo == dual.Boost[ boost ] or type == 0 and dual.Boost[ boost ] == "" then return end
+
+            if dual.Boost[ boost ] then
+                Osi.RemoveBoosts( uuid, dual.Boost[ boost ], 0, _V.Key, "" )
+            end
+
+            if type == 2 then
+                dual.Boost[ boost ] = ""
+            else
+                dual.Boost[ boost ] = boo
+                Osi.AddBoosts( uuid, boo, _V.Key, "" )
+                if boo:find( " 0 " ) then
+                    Ext.Timer.WaitFor( 500, function() Osi.RemoveBoosts( uuid, boo, 0, _V.Key, "" ) end )
+                end
+            end
+        end
+
+        return {
+            Update = function() Check( 0 ) end,
+            Apply = function() Check( 1 ) end,
+            Remove = function() Check( 2 ) end
+        }
+    end
+
     _F.RemoveDualEffects = function( uuid )
-        _F.CheckBoost( uuid, "Penalty", true )
+        _F.Boost( uuid, "Penalty" ).Remove()
 
         local ent = Ext.Entity.Get( uuid )
         if not ent then return end
@@ -138,7 +156,7 @@ return function( _V )
             Data = {}
         }
         local d = _V.Duals[ uuid ]
-        _F.CheckBoost( uuid, "Base" )
+        _F.Boost( uuid, "Base" ).Apply()
 
         for _,i in ipairs( { "Ranged", "Melee" } ) do
             if not dual[ i .. "UI" ] then
@@ -149,9 +167,9 @@ return function( _V )
             end
 
             if d[ i ] then
-                _F.CheckBoost( uuid, i )
+                _F.Boost( uuid, i ).Apply()
             else
-                _F.CheckBoost( uuid, i, true )
+                _F.Boost( uuid, i ).Remove()
             end
         end
 
