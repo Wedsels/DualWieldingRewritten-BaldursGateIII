@@ -1,7 +1,24 @@
 --- @param _V _V
 --- @param _F _F
 return function( _V,  _F )
-    Ext.Entity.OnCreate("SpellCastIsCasting",
+    Ext.Entity.OnDestroy(
+        "SpellCastIsCasting",
+        function( ent )
+            local id = _F.UUID( ent )
+            if not id then return end
+
+            for uuid,_ in pairs( _V.Hips ) do
+                local data = Ext.StaticData.Get( uuid, "EquipmentType" )
+                data.WeaponType_OneHanded = "Small1H"
+            end
+
+            Osi.SetWeaponUnsheathed( id, 1, 1 )
+            Osi.SetWeaponUnsheathed( id, 0, 1 )
+        end
+    )
+
+    Ext.Entity.OnCreate(
+        "SpellCastIsCasting",
         function()
             for uuid,type in pairs( _V.Hips ) do
                 local data = Ext.StaticData.Get( uuid, "EquipmentType" )
@@ -10,19 +27,15 @@ return function( _V,  _F )
         end
     )
 
-    Ext.Osiris.RegisterListener(
-        "UsingSpell",
-        5,
-        "after",
-        function()
-            Ext.Timer.WaitFor( 120,
-                function()
-                    for uuid,_ in pairs( _V.Hips ) do
-                        local data = Ext.StaticData.Get( uuid, "EquipmentType" )
-                        data.WeaponType_OneHanded = "Small1H"
-                    end
+    Ext.Entity.OnChange(
+        "Unsheath",
+        function( ent )
+            if ent.Unsheath.State == "Sheathed" then
+                for uuid,type in pairs( _V.Hips ) do
+                    local data = Ext.StaticData.Get( uuid, "EquipmentType" )
+                    data.WeaponType_OneHanded = type
                 end
-            )
+            end
         end
     )
 
