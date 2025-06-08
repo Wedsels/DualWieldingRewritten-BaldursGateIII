@@ -31,6 +31,27 @@ return function( _V )
         end
     end
 
+    _F.Hip = {
+        Apply = function( uuid )
+            uuid = _F.UUID( uuid )
+            if not uuid then return end
+
+            if Osi.IsInCombat( uuid ) == 1 then return end
+
+            for data,_ in pairs( _V.Hips ) do
+                Ext.StaticData.Get( data, "EquipmentType" ).WeaponType_OneHanded = "Small1H"
+            end
+
+            Osi.SetWeaponUnsheathed( uuid, 1, 1 )
+            Osi.SetWeaponUnsheathed( uuid, 0, 1 )
+        end,
+        Remove = function()
+            for data,type in pairs( _V.Hips ) do
+                Ext.StaticData.Get( data, "EquipmentType" ).WeaponType_OneHanded = type
+            end
+        end
+    }
+
     _F.Boost = function( uuid, boost )
         local function Check( type )
             local dual = _V.Duals[ uuid ]

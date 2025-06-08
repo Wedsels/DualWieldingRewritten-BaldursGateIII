@@ -1,43 +1,10 @@
 --- @param _V _V
 --- @param _F _F
 return function( _V,  _F )
-    Ext.Entity.OnDestroy(
-        "SpellCastIsCasting",
-        function( ent )
-            local id = _F.UUID( ent )
-            if not id then return end
-
-            for uuid,_ in pairs( _V.Hips ) do
-                local data = Ext.StaticData.Get( uuid, "EquipmentType" )
-                data.WeaponType_OneHanded = "Small1H"
-            end
-
-            Osi.SetWeaponUnsheathed( id, 1, 1 )
-            Osi.SetWeaponUnsheathed( id, 0, 1 )
-        end
-    )
-
-    Ext.Entity.OnCreate(
-        "SpellCastIsCasting",
-        function()
-            for uuid,type in pairs( _V.Hips ) do
-                local data = Ext.StaticData.Get( uuid, "EquipmentType" )
-                data.WeaponType_OneHanded = type
-            end
-        end
-    )
-
-    Ext.Entity.OnChange(
-        "Unsheath",
-        function( ent )
-            if ent.Unsheath.State == "Sheathed" then
-                for uuid,type in pairs( _V.Hips ) do
-                    local data = Ext.StaticData.Get( uuid, "EquipmentType" )
-                    data.WeaponType_OneHanded = type
-                end
-            end
-        end
-    )
+    Ext.Entity.OnDestroy( "SpellCastIsCasting", function( ent ) _F.Hip.Apply( ent ) end )
+    Ext.Entity.OnCreate( "SpellCastIsCasting", _F.Hip.Remove )
+    Ext.Entity.OnChange( "Unsheath", function( ent ) if ent.Unsheath.State == "Sheathed" then _F.Hip.Remove() end end )
+    Ext.Osiris.RegisterListener( "LeftCombat", 2, "before", _F.Hip.Remove )
 
     Ext.Osiris.RegisterListener(
         "CastedSpell",
@@ -83,8 +50,8 @@ return function( _V,  _F )
 
             Ext.Loca.UpdateTranslatedString(
                 "h5153f9f3g7dcbg45d9gae1bgd19f398959a2",
-                "Become more adept at twin weapons, no longer suffering a penalty of " .. _V.Penalty .. " <LSTag Tooltip=\"AttackRoll\">Accuracy</LSTag> while dual wielding.\n\n" ..
-                "Improve stability and coordination, using the free <LSTag Tooltip=\"Action\">Action</LSTag> off hand attack no longer reduces <LSTag Tooltip=\"ArmourClass\">Armour Class</LSTag> by " .. _V.Penalty .. " for a turn."
+                "Become more adept at twin weapons, reducing the penalty of " .. _V.Penalty .. " <LSTag Tooltip=\"AttackRoll\">Accuracy</LSTag> by " .. _V.TwoWeaponFighting .. " while dual wielding.\n\n" ..
+                "Improve stability and coordination, reducing the free <LSTag Tooltip=\"Action\">Action</LSTag> off hand attack <LSTag Tooltip=\"ArmourClass\">Armour Class</LSTag> penalty of " .. _V.Penalty .. " by " .. _V.TwoWeaponFighting .. "."
             )
 
             Ext.Entity.OnChange( "DualWielding", function( e ) _F.CheckDualStatus( _F.UUID( e ) ) end )

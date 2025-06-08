@@ -18,6 +18,12 @@ if MCM then
                     _F.Boost( uuid, boost ).Update()
                 end
             end
+
+            Ext.Loca.UpdateTranslatedString(
+                "h5153f9f3g7dcbg45d9gae1bgd19f398959a2",
+                "Become more adept at twin weapons, reducing the penalty of " .. _V.Penalty .. " <LSTag Tooltip=\"AttackRoll\">Accuracy</LSTag> by " .. _V.TwoWeaponFighting .. " while dual wielding.\n\n" ..
+                "Improve stability and coordination, reducing the free <LSTag Tooltip=\"Action\">Action</LSTag> off hand attack <LSTag Tooltip=\"ArmourClass\">Armour Class</LSTag> penalty of " .. _V.Penalty .. " by " .. _V.TwoWeaponFighting .. "."
+            )
         end
     )
 end
