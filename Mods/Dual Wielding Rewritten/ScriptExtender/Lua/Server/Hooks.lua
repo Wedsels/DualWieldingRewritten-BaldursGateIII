@@ -2,9 +2,9 @@
 --- @param _F _F
 return function( _V,  _F )
     Ext.Entity.OnDestroy( "SpellCastIsCasting", function( ent ) _F.Hip.Apply( ent ) end )
+    Ext.Osiris.RegisterListener( "LeftCombat", 2, "before", function( uuid ) _F.Hip.Apply( uuid ) end )
     Ext.Entity.OnCreate( "SpellCastIsCasting", _F.Hip.Remove )
     Ext.Entity.OnChange( "Unsheath", function( ent ) if ent.Unsheath.State == "Sheathed" then _F.Hip.Remove() end end )
-    Ext.Osiris.RegisterListener( "LeftCombat", 2, "before", _F.Hip.Remove )
 
     Ext.Osiris.RegisterListener(
         "CastedSpell",
