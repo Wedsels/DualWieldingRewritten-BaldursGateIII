@@ -98,30 +98,30 @@ return function( _V )
         end
     end
 
-    _F.CleanSpell = function( spell, name, type )
-        local function mainoff( str )
-            str = tostring( str )
-            if type then
-                str = string.gsub( str, "OffHand", "MainHand" )
-                str = string.gsub( str, "Offhand", "Main" )
-                str = string.gsub( str, "OffHandWeaponAttack", "WeaponAttack" )
-            else
-                str = string.gsub( str, "MainHand", "OffHand" )
-                str = string.gsub( str, "Main", "Offhand" )
-                str = string.gsub( str, "WeaponAttack", "OffHandWeaponAttack" )
-                str = string.gsub( str, "OffHandOffHandWeaponAttack", "OffHandWeaponAttack" )
-            end
-
-            return str
+    _F.MainOff = function( str )
+        str = tostring( str )
+        if type then
+            str = string.gsub( str, "OffHand", "MainHand" )
+            str = string.gsub( str, "Offhand", "Main" )
+            str = string.gsub( str, "OffHandWeaponAttack", "WeaponAttack" )
+        else
+            str = string.gsub( str, "MainHand", "OffHand" )
+            str = string.gsub( str, "Main", "Offhand" )
+            str = string.gsub( str, "WeaponAttack", "OffHandWeaponAttack" )
+            str = string.gsub( str, "OffHandOffHandWeaponAttack", "OffHandWeaponAttack" )
         end
 
-        spell.TooltipDamageList = mainoff( spell.TooltipDamageList )
-        spell.TooltipAttackSave = mainoff( spell.TooltipAttackSave )
-        spell.DescriptionParams = mainoff( spell.DescriptionParams )
+        return str
+    end
+
+    _F.CleanSpell = function( spell, name, type )
+        spell.TooltipDamageList = _F.MainOff( spell.TooltipDamageList )
+        spell.TooltipAttackSave = _F.MainOff( spell.TooltipAttackSave )
+        spell.DescriptionParams = _F.MainOff( spell.DescriptionParams )
         if spell.SpellRoll then
             local roll = spell.SpellRoll
             for key,i in pairs( roll ) do
-                pcall( function() roll[ key ] = mainoff( i ) end )
+                pcall( function() roll[ key ] = _F.MainOff( i ) end )
             end
             spell.SpellRoll = roll
         end
@@ -133,7 +133,7 @@ return function( _V )
                     for _,i in ipairs( e.Functors ) do
                         pcall(
                             function()
-                                i.WeaponType = mainoff( i.WeaponType )
+                                i.WeaponType = _F.MainOff( i.WeaponType )
                                 if string.find( i.ProjectileSpell, name ) then
                                     i.ProjectileSpell = name .. _V.Off
                                 end
@@ -149,7 +149,7 @@ return function( _V )
                     e.TextKey = "Disabled"
                 else
                     for _,i in ipairs( e.Functors ) do
-                        pcall( function() i.WeaponType = mainoff( i.WeaponType ) end )
+                        pcall( function() i.WeaponType = _F.MainOff( i.WeaponType ) end )
                     end
                 end
             end

@@ -116,6 +116,9 @@ Ext.Events.StatsLoaded:Subscribe(
             off.ContainerSpells = ""
             off.SpellContainerID = ""
             off.RequirementConditions = ""
+            if off.RootSpellID and off.RootSpellID ~= "" then
+                off.RootSpellID = off.RootSpellID .. _V.Off
+            end
             if string.find( off.AlternativeCastTextEvents, "CastOffhand" ) then
                 off.CastTextEvent = "CastOffhand"
             end
