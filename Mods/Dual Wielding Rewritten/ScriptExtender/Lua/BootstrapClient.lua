@@ -134,8 +134,13 @@ Ext.Events.StatsLoaded:Subscribe(
             table.insert( flags, "CanDualWield" )
             spell.SpellFlags = flags
 
-            _F.CleanSpell( off, name, false )
-            _F.CleanSpell( spell, name, true )
+            off.TooltipDamageList = _F.MainOff( off.TooltipDamageList, false )
+            off.TooltipAttackSave = _F.MainOff( off.TooltipAttackSave, false )
+            off.DescriptionParams = _F.MainOff( off.DescriptionParams, false )
+
+            spell.TooltipDamageList = _F.MainOff( spell.TooltipDamageList, true )
+            spell.TooltipAttackSave = _F.MainOff( spell.TooltipAttackSave, true )
+            spell.DescriptionParams = _F.MainOff( spell.DescriptionParams, true )
         end
     end
 )

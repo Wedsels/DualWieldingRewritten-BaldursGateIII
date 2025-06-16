@@ -23,6 +23,18 @@ return function( _V )
         end
     end
 
+    _F.GenerateUUID = function()
+        return string.format(
+            "%08x-%04x-4%03x-%x%03x-%012x",
+            math.random( 0, 0xffffffff ),
+            math.random( 0, 0xffff ),
+            math.random( 0, 0x0fff ),
+            math.random( 8, 11 ),
+            math.random( 0, 0x0fff ),
+            math.random( 0, 0xffffffffffff )
+        )
+    end
+
     _F.Index = function( tbl, val )
         for i,v in ipairs( tbl ) do
             if val == v then
@@ -98,7 +110,7 @@ return function( _V )
         end
     end
 
-    _F.MainOff = function( str )
+    _F.MainOff = function( str, type )
         str = tostring( str )
         if type then
             str = string.gsub( str, "OffHand", "MainHand" )
@@ -115,30 +127,22 @@ return function( _V )
     end
 
     _F.CleanSpell = function( spell, name, type )
-        spell.TooltipDamageList = _F.MainOff( spell.TooltipDamageList )
-        spell.TooltipAttackSave = _F.MainOff( spell.TooltipAttackSave )
-        spell.DescriptionParams = _F.MainOff( spell.DescriptionParams )
         if spell.SpellRoll then
             local roll = spell.SpellRoll
             for key,i in pairs( roll ) do
-                pcall( function() roll[ key ] = _F.MainOff( i ) end )
+                roll[ key ] = _F.MainOff( i, type )
             end
             spell.SpellRoll = roll
         end
         if spell.SpellProperties then
-            for _,e in ipairs( spell.SpellProperties ) do
-                if e.TextKey == "CastOffhand" then
-                    e.TextKey = "Disabled"
+            for _,p in ipairs( spell.SpellProperties ) do
+                if p.TextKey == "CastOffhand" then
+                    p.TextKey = "Disabled"
                 else
-                    for _,i in ipairs( e.Functors ) do
-                        pcall(
-                            function()
-                                i.WeaponType = _F.MainOff( i.WeaponType )
-                                if string.find( i.ProjectileSpell, name ) then
-                                    i.ProjectileSpell = name .. _V.Off
-                                end
-                            end
-                        )
+                    for _,f in ipairs( p.Functors ) do
+                        f.FunctorUuid = _F.GenerateUUID()
+                        pcall( function() f.WeaponType = _F.MainOff( f.WeaponType, type ) end )
+                        pcall( function() if f.ProjectileSpell == name then f.ProjectileSpell = name .. _V.Off end end )
                     end
                 end
             end
@@ -149,7 +153,7 @@ return function( _V )
                     e.TextKey = "Disabled"
                 else
                     for _,i in ipairs( e.Functors ) do
-                        pcall( function() i.WeaponType = _F.MainOff( i.WeaponType ) end )
+                        pcall( function() i.WeaponType = _F.MainOff( i.WeaponType, type ) end )
                     end
                 end
             end
@@ -161,6 +165,8 @@ return function( _V )
                 end
             end
         end
+
+        spell:Sync()
     end
 
     _F.CheckDualStatus = function( uuid )
@@ -243,6 +249,8 @@ return function( _V )
                 data.Charge = data.Charge - 1
             else
                 name = string.sub( spell, 1, -#_V.Off - 1 )
+
+                _F.CleanSpell( Ext.Stats.Get( name ), name, true )
                 Osi.RemoveSpell( uuid, spell )
                 Osi.RemoveBoosts( uuid, "UnlockSpellVariant( SpellId( '" .. name .. "' ), ModifyIconGlow() )", 0, _V.Key, "" )
 
@@ -256,6 +264,7 @@ return function( _V )
             if data then
                 data.Charge = data.Charge + 1
             else
+                _F.CleanSpell( Ext.Stats.Get( name ), spell, false )
                 _F.AddSpell( ent, uuid, name )
                 Osi.AddBoosts( uuid, "UnlockSpellVariant( SpellId( '" .. name .. "' ), ModifyIconGlow() )", _V.Key, "" )
 
