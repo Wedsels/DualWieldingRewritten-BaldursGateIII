@@ -8,7 +8,7 @@
         <node id="ModuleInfo">
           <attribute id="Author" type="LSString" value="Wedsels" />
           <attribute id="CharacterCreationLevelName" type="FixedString" value="" />
-          <attribute id="Description" type="LSString" value="Reworks dual wielding, allowing for free secondary attacks with any spell or attack using the weapon, plus additional balance and quality of life." />
+          <attribute id="Description" type="LSString" value="All melee weapons can be dual and versatile wielded. Properly hip sheathed one handed weapons, with matching animations. Weapon based skill casts can be repeated from the off-hand." />
           <attribute id="Folder" type="LSString" value="Dual Wielding Rewritten" />
           <attribute id="LobbyLevelName" type="FixedString" value="" />
           <attribute id="MD5" type="LSString" value="" />
@@ -21,7 +21,7 @@
           <attribute id="Tags" type="LSString" value="" />
           <attribute id="Type" type="FixedString" value="" />
           <attribute id="UUID" type="FixedString" value="d6f0f616-8126-4020-bb7c-875ad9dc9d16" />
-          <attribute id="Version64" type="int64" value="36310271995674628" />
+          <attribute id="Version64" type="int64" value="36310271995674629" />
           <children>
             <node id="PublishVersion">
               <attribute id="Version64" type="int64" value="36028797018963968" />

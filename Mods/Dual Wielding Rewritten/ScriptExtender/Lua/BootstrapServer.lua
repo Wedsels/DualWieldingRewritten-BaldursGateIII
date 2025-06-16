@@ -62,13 +62,13 @@ for _,uuid in ipairs( Ext.StaticData.GetAll( "EquipmentType" ) ) do
         data.SourceBoneVersatileSheathed = data.SourceBoneSheathed
         data.SourceBoneVersatileUnsheathed = source.SourceBoneVersatileUnsheathed
         data.WeaponType_OneHanded = change
-    end
 
-    if t:find( "1H" ) then
-        data.BoneMainSheathed = "Dummy_Sheath_Hip_L"
-        data.BoneOffHandSheathed = "Dummy_Sheath_Hip_R"
-        data.BoneVersatileSheathed = "Dummy_Sheath_Hip_L"
+        if t:find( "1H" ) then
+            data.BoneMainSheathed = "Dummy_Sheath_Hip_L"
+            data.BoneOffHandSheathed = "Dummy_Sheath_Hip_R"
+            data.BoneVersatileSheathed = "Dummy_Sheath_Hip_L"
 
-        _V.Hips[ uuid ] = data.WeaponType_OneHanded
+            _V.Hips[ uuid ] = data.WeaponType_OneHanded
+        end
     end
 end
