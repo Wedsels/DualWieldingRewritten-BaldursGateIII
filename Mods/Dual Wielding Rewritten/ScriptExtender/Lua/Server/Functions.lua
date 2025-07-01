@@ -67,9 +67,12 @@ return function( _V )
     _F.Boost = function( uuid, boost )
         local function Check( type )
             local dual = _V.Duals[ uuid ]
-            if not dual then return end
+            local ent = Ext.Entity.Get( uuid )
+            if not dual or not ent then return end
 
-            local boo = _V.Boosts( uuid )[ boost ]
+            local b = _V.Boosts( uuid )
+            if not b then return end
+            local boo = b[ boost ]
             if type ~= 2 and boo == dual.Boost[ boost ] or type == 0 and dual.Boost[ boost ] == "" then return end
 
             if dual.Boost[ boost ] then
@@ -180,9 +183,23 @@ return function( _V )
             Melee = false,
             Time = -1,
             Boost = {},
-            Data = {}
+            Data = {},
+            Equip = {}
         }
         local d = _V.Duals[ uuid ]
+
+        local function weight( type )
+            local main = Ext.Entity.Get( Osi.GetEquippedItem( uuid, type .. " Main Weapon" ) )
+            local off = Ext.Entity.Get( Osi.GetEquippedItem( uuid, type .. " Offhand Weapon" ) )
+            if main and off then return main.Data.Weight + off.Data.Weight end
+            return 0
+        end
+
+        local rangemain = Osi.GetEquippedItem( uuid, "Ranged Main Weapon" )
+        d.Equip.Ranger = rangemain == Osi.GetEquippedWeapon( uuid )
+        d.Equip.MeleeWeight = weight( "Melee" )
+        d.Equip.RangedWeight = weight( "Ranged" )
+
         _F.Boost( uuid, "Base" ).Apply()
 
         for _,i in ipairs( { "Ranged", "Melee" } ) do
@@ -294,6 +311,14 @@ return function( _V )
             :: done ::
             ent:Replicate( "HotbarContainer" )
         end
+    end
+
+    _F.UpdateText = function()
+        Ext.Loca.UpdateTranslatedString(
+            "h5153f9f3g7dcbg45d9gae1bgd19f398959a2",
+            "Improve stability and become more adept at twin weapons.\n\n" ..
+            "The Dual Wielding <LSTag Tooltip=\"AttackRoll\">Accuracy</LSTag> and <LSTag Tooltip=\"ArmourClass\">Armour Class</LSTag> penalties apply at " .. _V.TwoWeaponFighting * 100.0 .. "% of their normal effect."
+        )
     end
 
     return _F

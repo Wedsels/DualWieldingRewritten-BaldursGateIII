@@ -1,10 +1,26 @@
 --- @param _V _V
 --- @param _F _F
 return function( _V,  _F )
-    Ext.Entity.OnDestroy( "SpellCastIsCasting", function( ent ) _F.Hip.Apply( ent ) end )
     Ext.Osiris.RegisterListener( "LeftCombat", 2, "before", function( uuid ) _F.Hip.Apply( uuid ) end )
+    Ext.Entity.OnDestroy( "SpellCastIsCasting", function( ent ) _F.Hip.Apply( ent ) end )
     Ext.Entity.OnCreate( "SpellCastIsCasting", _F.Hip.Remove )
     Ext.Entity.OnChange( "Unsheath", function( ent ) if ent.Unsheath.State == "Sheathed" then _F.Hip.Remove() end end )
+
+    Ext.Osiris.RegisterListener(
+        "MissedBy",
+        4,
+        "after",
+        function( defender, attackOwner, attacker, storyActionID )
+            local uuid = _F.UUID( attacker )
+            local dual = _V.Duals[ uuid ]
+
+            if not dual or not dual.Melee and not dual.Ranged then
+                return
+            end
+
+            _F.Boost( uuid, "Penalty" ).Apply()
+        end
+    )
 
     Ext.Osiris.RegisterListener(
         "CastedSpell",
@@ -21,7 +37,6 @@ return function( _V,  _F )
             local type = _V.Spells[ spell ]
 
             if _F.OffHandSpell( spell ) then
-                _F.Boost( uuid, "Penalty" ).Apply()
                 dual.Time = Ext.Utils.MonotonicTime()
                 _F.ExchangeSpell( uuid, spell )
                 return
@@ -32,6 +47,19 @@ return function( _V,  _F )
 
                 dual.Data[ spell .. _V.Off ].Time = 0
             end
+        end
+    )
+
+    Ext.Osiris.RegisterListener( "Equipped", 2, "after", function( i, p ) _F.CheckDualStatus( _F.UUID( p ) ) end )
+    Ext.Entity.OnChange(
+        "WeaponSet",
+        function( e )
+            local uuid = _F.UUID( e )
+            if not uuid then return end
+            local equip = _V.Duals[ uuid ] and _V.Duals[ uuid ].Equip
+            if not equip then return end
+
+            equip.Ranger = not equip.Ranger
         end
     )
 
@@ -47,12 +75,6 @@ return function( _V,  _F )
             for _,ent in pairs( Ext.Entity.GetAllEntities() ) do
                 _F.CheckDualStatus( _F.UUID( ent ) )
             end
-
-            Ext.Loca.UpdateTranslatedString(
-                "h5153f9f3g7dcbg45d9gae1bgd19f398959a2",
-                "Become more adept at twin weapons, reducing the penalty of " .. _V.Penalty .. " <LSTag Tooltip=\"AttackRoll\">Accuracy</LSTag> by " .. _V.TwoWeaponFighting .. " while dual wielding.\n\n" ..
-                "Improve stability and coordination, reducing the free <LSTag Tooltip=\"Action\">Action</LSTag> off hand attack <LSTag Tooltip=\"ArmourClass\">Armour Class</LSTag> penalty of " .. _V.Penalty .. " by " .. _V.TwoWeaponFighting .. "."
-            )
 
             Ext.Entity.OnChange( "DualWielding", function( e ) _F.CheckDualStatus( _F.UUID( e ) ) end )
         end

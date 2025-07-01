@@ -2,6 +2,8 @@ local _V = require( "Server.Variables" )
 local _F = require( "Server.Functions" )( _V )
 local _H = require( "Server.Hooks" )( _V, _F )
 
+_F.UpdateText()
+
 if MCM then
     _V.Penalty = MCM.Get( "Penalty" )
     _V.TwoWeaponFighting = MCM.Get( "TwoWeaponFighting" )
@@ -19,11 +21,7 @@ if MCM then
                 end
             end
 
-            Ext.Loca.UpdateTranslatedString(
-                "h5153f9f3g7dcbg45d9gae1bgd19f398959a2",
-                "Become more adept at twin weapons, reducing the penalty of " .. _V.Penalty .. " <LSTag Tooltip=\"AttackRoll\">Accuracy</LSTag> by " .. _V.TwoWeaponFighting .. " while dual wielding.\n\n" ..
-                "Improve stability and coordination, reducing the free <LSTag Tooltip=\"Action\">Action</LSTag> off hand attack <LSTag Tooltip=\"ArmourClass\">Armour Class</LSTag> penalty of " .. _V.Penalty .. " by " .. _V.TwoWeaponFighting .. "."
-            )
+            _F.UpdateText()
         end
     )
 end

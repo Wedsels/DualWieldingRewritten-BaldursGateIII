@@ -11,16 +11,18 @@
                 {
                     "Id": "Penalty",
                     "Name": "Penalty",
-                    "Type": "int",
-                    "Default": -3,
-                    "Description": "The AC and Attack Roll penalties from Dual Wielding."
+                    "Type": "slider_float",
+                    "Options": { "Max": 1.0, "Min": 0.0 },
+                    "Default": 1.0,
+                    "Tooltip": "Modify the AC and Attack Roll penalties from Dual Wielding by X%."
                 },
                 {
                     "Id": "TwoWeaponFighting",
                     "Name": "Two Weapon Fighting",
-                    "Type": "int",
-                    "Default": 3,
-                    "Description": "The AC and Attack Roll bonus from Two Weapon Fighting Fighting Style."
+                    "Type": "slider_float",
+                    "Options": { "Max": 1.0, "Min": 0.0 },
+                    "Default": 0.33,
+                    "Tooltip": "With the Two Weapon Fighting Fighting Style reduce the AC and Attack Roll penalties by X%."
                 }
             ]
         }
