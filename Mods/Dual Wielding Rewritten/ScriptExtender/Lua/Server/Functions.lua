@@ -252,27 +252,33 @@ return function( _V )
     end
 
     _F.ExchangeSpell = function( uuid, spell )
-        local ent = Ext.Entity.Get( uuid )
+        uuid = _F.UUID( uuid )
         local dual = _V.Duals[ uuid ]
+        local ent = Ext.Entity.Get( uuid )
         if not ent or not dual then return end
 
-        local hotbar = false
+        local offhand = _F.OffHandSpell( spell )
+
+        local container
+        local hotbar
 
         local name = ""
-        if _F.OffHandSpell( spell ) then
+        if offhand then
             local data = dual.Data[ spell ]
 
             if data and data.Charge - 1 > 0 then
                 data.Charge = data.Charge - 1
             else
                 name = string.sub( spell, 1, -#_V.Off - 1 )
+                local origin = Ext.Stats.Get( name )
 
-                _F.CleanSpell( Ext.Stats.Get( name ), name, true )
+                _F.CleanSpell( origin, name, true )
                 Osi.RemoveSpell( uuid, spell )
                 Osi.RemoveBoosts( uuid, "UnlockSpellVariant( SpellId( '" .. name .. "' ), ModifyIconGlow() )", 0, _V.Key, "" )
 
                 dual.Data[ spell ] = nil
                 hotbar = true
+                container = origin.SpellContainerID
             end
         else
             name = spell .. _V.Off
@@ -290,6 +296,7 @@ return function( _V )
                     Time = 0
                 }
                 hotbar = true
+                container = Ext.Stats.Get( spell ).SpellContainerID
             end
         end
 
@@ -297,11 +304,14 @@ return function( _V )
             local hot = ent:GetComponent( "HotbarContainer" )
             if not hot then return end
 
+            local usecontainer = offhand and container and container ~= ""
+            local compare = not usecontainer and container and container ~= ""
+
             for _,i in ipairs( hot.Containers[ hot.ActiveContainer ] ) do
                 for _,e in pairs( i.Elements ) do
-                    if e.SpellId.Prototype == spell then
-                        e.SpellId.Prototype = name
-                        e.SpellId.OriginatorPrototype = name
+                    if compare and e.SpellId.Prototype == container or not compare and e.SpellId.Prototype == spell then
+                        e.SpellId.Prototype = usecontainer and container or name
+                        e.SpellId.OriginatorPrototype = usecontainer and container or name
 
                         goto done
                     end

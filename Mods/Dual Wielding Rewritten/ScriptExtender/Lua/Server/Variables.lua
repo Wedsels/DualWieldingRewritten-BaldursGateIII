@@ -7,9 +7,6 @@ _V.Die = { "d4", "d6", "d8", "d10", "d12" }
 _V.Penalty = 1.0
 _V.TwoWeaponFighting = 0.33
 
---- @type table < string, string >
-_V.Hips = {}
-
 --- @class Data
 --- @field Charge number
 --- @field Time number
@@ -57,7 +54,6 @@ end
 
 --- @type table < string, boolean >
 _V.Spells = {}
-
 for _,name in pairs( Ext.Stats.GetStats( "SpellData" ) ) do
     local spell = Ext.Stats.Get( name )
 
@@ -80,6 +76,15 @@ for _,name in pairs( Ext.Stats.GetStats( "SpellData" ) ) do
                 end
             end
         end
+    end
+end
+
+--- @type table < string, string >
+_V.Hips = {}
+for _,uuid in ipairs( Ext.StaticData.GetAll( "EquipmentType" ) ) do
+    local data = Ext.StaticData.Get( uuid, "EquipmentType" )
+    if data.BoneMainSheathed == "Dummy_Sheath_Hip_L" then
+        _V.Hips[ uuid ] = data.WeaponType_OneHanded
     end
 end
 

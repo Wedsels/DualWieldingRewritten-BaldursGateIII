@@ -14,7 +14,11 @@ return function( _V,  _F )
             local uuid = _F.UUID( attacker )
             local dual = _V.Duals[ uuid ]
 
-            if not dual or not dual.Melee and not dual.Ranged then
+            if not dual
+            or not dual.Melee and not dual.Ranged
+            or not dual.Equip.Ranger and not dual.Melee
+            or dual.Equip.Ranger and not dual.Ranged
+            then
                 return
             end
 

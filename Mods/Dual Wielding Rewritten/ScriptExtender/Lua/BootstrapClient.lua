@@ -3,6 +3,62 @@ local _F = require( "Server.Functions" )( _V )
 
 Ext.Events.StatsLoaded:Subscribe(
     function()
+        local Sources = {
+            Axe = Ext.StaticData.Get( "896f8a20-7dda-4bff-b726-08c3dacccc7b", "EquipmentType" ),
+            Spear = Ext.StaticData.Get( "cb322434-365d-47bf-8357-e2f202dfb129", "EquipmentType" ),
+            Staff = Ext.StaticData.Get( "b428632e-3137-47aa-ae8f-ddff6fc27cc8", "EquipmentType" ),
+            Sword = Ext.StaticData.Get( "f85002a2-8e0e-4a49-aa0f-f52e987d3a3a", "EquipmentType" ),
+            Hammer = Ext.StaticData.Get( "ab54402e-d3f3-497d-9b81-519b18afb827", "EquipmentType" )
+        }
+
+        for _,uuid in ipairs( Ext.StaticData.GetAll( "EquipmentType" ) ) do
+            local data = Ext.StaticData.Get( uuid, "EquipmentType" )
+
+            local one = data.WeaponType_OneHanded
+            local two = data.WeaponType_TwoHanded
+
+            local single = two:find( "1H" )
+
+            local source
+            if two == "Small1H" then
+                source = Sources.Sword
+            elseif one == "Slashing1H" or one == "Small1H" then
+                source = Sources.Sword
+            elseif one == "Javelin1H" or one == "Slashing1H" or one == "Piercing1H" then
+                source = Sources.Spear
+            elseif two == "Polearm2H" or two == "Spear2H" then
+                one = "Javelin1H"
+                source = Sources.Spear
+            elseif two == "Sword2H" then
+                one = "Piercing1H"
+                source = Sources.Spear
+            elseif two == "Generic2H" then
+                one = "Slashing1H"
+                source = Sources.Sword
+            end
+
+            if source then
+                if two:find( "2H" ) then
+                    data.BoneOffHandUnsheathed = source.BoneOffHandUnsheathed
+                    data.BoneVersatileUnsheathed = source.BoneVersatileUnsheathed
+                    data.SourceBoneVersatileSheathed = data.SourceBoneSheathed
+                    data.SourceBoneVersatileUnsheathed = source.SourceBoneVersatileUnsheathed
+                end
+
+                data.WeaponType_OneHanded = one
+                data.WeaponType_TwoHanded = single and "Sword2H" or data.WeaponType_TwoHanded
+            end
+
+            if ( source or data.Name == "HandCrossbow" ) and single then
+                data.BoneMainSheathed = "Dummy_Sheath_Hip_L"
+                data.BoneOffHandSheathed = "Dummy_Sheath_Hip_R"
+                data.BoneVersatileSheathed = "Dummy_Sheath_Hip_L"
+            elseif source then
+                data.BoneOffHandSheathed = source.BoneOffHandSheathed
+                data.BoneVersatileSheathed = source.BoneVersatileSheathed
+            end
+        end
+
         for _,i in ipairs( Ext.Stats.GetStats( "Weapon" ) ) do
             local item = Ext.Stats.Get( i )
 
@@ -124,15 +180,15 @@ Ext.Events.StatsLoaded:Subscribe(
             end
 
             local flags = spell.SpellFlags
+            table.insert( flags, "CanDualWield" )
+            spell.SpellFlags = flags
+
             for _,i in ipairs( flags ) do
-                if i == "CanDualWield" then
+                if i == "CanDualWield" or i == "IsLinkedSpellContainer" then
                     table.remove( flags, _ )
                 end
             end
             off.SpellFlags = flags
-
-            table.insert( flags, "CanDualWield" )
-            spell.SpellFlags = flags
 
             off.TooltipDamageList = _F.MainOff( off.TooltipDamageList, false )
             off.TooltipAttackSave = _F.MainOff( off.TooltipAttackSave, false )
