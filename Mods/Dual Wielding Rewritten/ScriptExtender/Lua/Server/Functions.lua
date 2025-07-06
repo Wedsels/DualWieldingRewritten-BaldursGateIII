@@ -46,21 +46,33 @@ return function( _V )
     _F.Hip = {
         Apply = function( uuid )
             uuid = _F.UUID( uuid )
-            if not uuid then return end
+            local equip = _V.Duals[ uuid ] and _V.Duals[ uuid ].Equip
+            if not uuid or not equip then return end
 
             if Osi.IsInCombat( uuid ) == 1 then return end
 
-            for data,_ in pairs( _V.Hips ) do
-                Ext.StaticData.Get( data, "EquipmentType" ).WeaponType_OneHanded = "Small1H"
+            for _,data in ipairs( equip.Ranger and equip.Ranged or equip.Melee ) do
+                local eq = Ext.StaticData.Get( data.Equipable.EquipmentTypeID, "EquipmentType" )
+                if eq.BoneMainSheathed == "Dummy_Sheath_Hip_L" then
+                    table.insert( equip.Returns, data )
+                    data.Equipable.EquipmentTypeID = "2d85d633-d496-44a1-a643-0e95ef879a6d"
+                    data:Replicate( "Equipable" )
+                end
             end
 
-            Osi.SetWeaponUnsheathed( uuid, 1, 1 )
             Osi.SetWeaponUnsheathed( uuid, 0, 1 )
         end,
-        Remove = function()
-            for data,type in pairs( _V.Hips ) do
-                Ext.StaticData.Get( data, "EquipmentType" ).WeaponType_OneHanded = type
+        Remove = function( uuid )
+            uuid = _F.UUID( uuid )
+            local equip = _V.Duals[ uuid ] and _V.Duals[ uuid ].Equip
+            if not uuid or not equip then return end
+
+            for _,data in ipairs( equip.Returns ) do
+                data.Equipable.EquipmentTypeID = data.ServerItem.Template.EquipmentTypeID
+                data:Replicate( "Equipable" )
             end
+
+            equip.Returns = {}
         end
     }
 
@@ -184,7 +196,11 @@ return function( _V )
             Time = -1,
             Boost = {},
             Data = {},
-            Equip = {}
+            Equip = {
+                Melee = {},
+                Ranged = {},
+                Returns = {},
+            }
         }
         local d = _V.Duals[ uuid ]
 

@@ -46,7 +46,9 @@ Ext.Events.StatsLoaded:Subscribe(
                 end
 
                 data.WeaponType_OneHanded = one
-                data.WeaponType_TwoHanded = single and "Sword2H" or data.WeaponType_TwoHanded
+                if data.BoneMainSheathed ~= "Dummy_Sheath_Hip_L" then
+                    data.WeaponType_TwoHanded = single and "Sword2H" or data.WeaponType_TwoHanded
+                end
             end
 
             if ( source or data.Name == "HandCrossbow" ) and single then

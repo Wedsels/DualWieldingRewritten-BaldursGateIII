@@ -3,8 +3,23 @@
 return function( _V,  _F )
     Ext.Osiris.RegisterListener( "LeftCombat", 2, "before", function( uuid ) _F.Hip.Apply( uuid ) end )
     Ext.Entity.OnDestroy( "SpellCastIsCasting", function( ent ) _F.Hip.Apply( ent ) end )
-    Ext.Entity.OnCreate( "SpellCastIsCasting", _F.Hip.Remove )
-    Ext.Entity.OnChange( "Unsheath", function( ent ) if ent.Unsheath.State == "Sheathed" then _F.Hip.Remove() end end )
+    Ext.Entity.OnCreate( "SpellCastIsCasting", function( ent ) _F.Hip.Remove( ent ) end )
+    Ext.Entity.OnChange(
+        "Unsheath",
+        function( ent )
+            local sheath = ent.Unsheath
+            if sheath.State == "Sheathed" then
+                _F.Hip.Remove( ent )
+            else
+                local uuid = _F.UUID( ent )
+                local equip = _V.Duals[ uuid ] and _V.Duals[ uuid ].Equip
+                if equip then
+                    equip[ sheath.State ] = { sheath.MainHandWeapon, sheath.OffHandWeapon }
+                    equip.Ranger = sheath.State == "Ranged"
+                end
+            end
+        end
+    )
 
     Ext.Osiris.RegisterListener(
         "MissedBy",
@@ -55,17 +70,6 @@ return function( _V,  _F )
     )
 
     Ext.Osiris.RegisterListener( "Equipped", 2, "after", function( i, p ) _F.CheckDualStatus( _F.UUID( p ) ) end )
-    Ext.Entity.OnChange(
-        "WeaponSet",
-        function( e )
-            local uuid = _F.UUID( e )
-            if not uuid then return end
-            local equip = _V.Duals[ uuid ] and _V.Duals[ uuid ].Equip
-            if not equip then return end
-
-            equip.Ranger = not equip.Ranger
-        end
-    )
 
     Ext.Osiris.RegisterListener( "TurnStarted", 1, "after", function( p ) _F.RemoveDualEffects( _F.UUID( p ) ) end )
     Ext.Osiris.RegisterListener( "EnteredCombat", 2, "after", function( p ) _F.RemoveDualEffects( _F.UUID( p ) ) end )

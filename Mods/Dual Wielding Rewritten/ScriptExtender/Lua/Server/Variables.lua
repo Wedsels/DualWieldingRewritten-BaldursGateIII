@@ -15,6 +15,9 @@ _V.TwoWeaponFighting = 0.33
 --- @field Ranger boolean
 --- @field MeleeWeight number
 --- @field RangedWeight number
+--- @field Melee table< userdata, userdata >
+--- @field Ranged table< userdata, userdata >
+--- @field Returns table< userdata >
 
 --- @class Wield
 --- @field Ranged boolean
@@ -76,15 +79,6 @@ for _,name in pairs( Ext.Stats.GetStats( "SpellData" ) ) do
                 end
             end
         end
-    end
-end
-
---- @type table < string, string >
-_V.Hips = {}
-for _,uuid in ipairs( Ext.StaticData.GetAll( "EquipmentType" ) ) do
-    local data = Ext.StaticData.Get( uuid, "EquipmentType" )
-    if data.BoneMainSheathed == "Dummy_Sheath_Hip_L" then
-        _V.Hips[ uuid ] = data.WeaponType_OneHanded
     end
 end
 
