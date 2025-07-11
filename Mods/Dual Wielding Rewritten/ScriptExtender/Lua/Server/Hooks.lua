@@ -23,28 +23,6 @@ return function( _V,  _F )
     )
 
     Ext.Osiris.RegisterListener(
-        "MissedBy",
-        4,
-        "after",
-        function( defender, attackOwner, attacker, storyActionID )
-            local uuid = _F.UUID( attacker )
-            local wield = _V.Duals[ uuid ]
-
-            if not wield
-            or not wield.Melee and not wield.Ranged
-            or not wield.Equip.Ranger and not wield.Melee
-            or wield.Equip.Ranger and not wield.Ranged
-            then
-                return
-            end
-
-            _F.RemoveSpells( uuid )
-            _F.Status( uuid ).Penalty.Apply()
-            wield.Time = Ext.Utils.MonotonicTime()
-        end
-    )
-
-    Ext.Osiris.RegisterListener(
         "CastedSpell",
         5,
         "after",
@@ -70,6 +48,29 @@ return function( _V,  _F )
 
                 wield.Data[ spell .. _V.Off ].Time = 0
             end
+        end
+    )
+
+    Ext.Osiris.RegisterListener(
+        "MissedBy",
+        4,
+        "after",
+        function( defender, attackOwner, attacker, storyActionID )
+            local uuid = _F.UUID( attacker )
+            local wield = _V.Duals[ uuid ]
+
+            if not _V.LostFooting
+            or not wield
+            or not wield.Melee and not wield.Ranged
+            or not wield.Equip.Ranger and not wield.Melee
+            or wield.Equip.Ranger and not wield.Ranged
+            then
+                return
+            end
+
+            _F.RemoveSpells( uuid )
+            _F.Status( uuid ).Penalty.Apply()
+            wield.Time = Ext.Utils.MonotonicTime()
         end
     )
 

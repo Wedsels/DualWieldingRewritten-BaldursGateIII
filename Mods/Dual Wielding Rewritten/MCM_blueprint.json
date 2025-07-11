@@ -14,7 +14,7 @@
                     "Type": "slider_float",
                     "Options": { "Max": 1.0, "Min": 0.0 },
                     "Default": 1.0,
-                    "Tooltip": "Modify the AC and Attack Roll penalties from Dual Wielding by X%."
+                    "Tooltip": "The AC and Attack Roll penalties from Dual Wielding are X% effective."
                 },
                 {
                     "Id": "TwoWeaponFighting",
@@ -23,6 +23,13 @@
                     "Options": { "Max": 1.0, "Min": 0.0 },
                     "Default": 0.33,
                     "Tooltip": "With the Two Weapon Fighting Fighting Style the dual-wielding penalties apply at X%."
+                },
+                {
+                    "Id": "LostFooting",
+                    "Name": "Lost Footing",
+                    "Type": "checkbox",
+                    "Default": true,
+                    "Tooltip": "Enable or disable the status effect Lost Footing."
                 }
             ]
         }

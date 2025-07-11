@@ -6,6 +6,7 @@ _V.Key = "DualWieldingBalance"
 _V.Die = { "d4", "d6", "d8", "d10", "d12" }
 _V.Penalty = 1.0
 _V.TwoWeaponFighting = 0.33
+_V.LostFooting = true
 
 --- @class Data
 --- @field Charge number
