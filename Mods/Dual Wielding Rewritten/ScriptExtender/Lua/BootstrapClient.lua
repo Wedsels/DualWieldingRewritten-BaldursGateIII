@@ -200,5 +200,14 @@ Ext.Events.StatsLoaded:Subscribe(
             spell.TooltipAttackSave = _F.MainOff( spell.TooltipAttackSave, true )
             spell.DescriptionParams = _F.MainOff( spell.DescriptionParams, true )
         end
+
+        local base = Ext.Stats.Create( _V.Status().Base, "StatusData" )
+        base.StatusType = "BOOST"
+        base.Icon = "PassiveFeature_MartialAdept"
+        base.DisplayName = "h67baff50fc6f4d6987de105926be4a5aef2a;1"
+        base.Description = "hae35af5067ca4c2cbd184564272886c9d169;1"
+        base.Boosts = "TwoWeaponFighting()"
+        base.StackId = base.Name
+        base.StatusPropertyFlags = { "DisableOverhead", "DisableCombatlog", "IgnoreResting" }
     end
 )

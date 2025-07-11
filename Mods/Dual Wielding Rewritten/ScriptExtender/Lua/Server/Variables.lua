@@ -13,8 +13,10 @@ _V.TwoWeaponFighting = 0.33
 
 --- @class Equip
 --- @field Ranger boolean
---- @field MeleeWeight number
---- @field RangedWeight number
+--- @field MeleeMain number
+--- @field MeleeOffhand number
+--- @field RangedMain number
+--- @field RangedOffhand number
 --- @field Melee table< userdata, userdata >
 --- @field Ranged table< userdata, userdata >
 --- @field Returns table< userdata >
@@ -24,36 +26,12 @@ _V.TwoWeaponFighting = 0.33
 --- @field Melee boolean
 --- @field Time number
 --- @field Equip Equip
---- @field Boost table < string, string >
+--- @field Status table < string, table< string > >
 --- @field Data table < string, Data >
+--- @field Generate boolean
 
 --- @type table< string, Wield >
 _V.Duals = {}
-
-_V.Boosts = function( uuid )
-    local equip = _V.Duals[ uuid ] and _V.Duals[ uuid ].Equip
-    if not equip then return end
-
-    local proficiency = 1 + math.floor( Osi.GetLevel( uuid ) / 2.0 )
-
-    local melee = 1 + proficiency + equip.MeleeWeight ^ 0.5 * 0.04
-    local ranged = 1 + proficiency + equip.RangedWeight ^ 0.5 * 0.04
-
-    if Osi.HasPassive( uuid, "FightingStyle_TwoWeaponFighting" ) == 1 then
-        melee = melee * _V.TwoWeaponFighting
-        ranged = ranged * _V.TwoWeaponFighting
-    end
-
-    melee = -math.ceil( melee * _V.Penalty )
-    ranged = -math.ceil( ranged * _V.Penalty )
-
-    return {
-        Base = "TwoWeaponFighting()",
-        Penalty = "AC( " .. ( equip.Ranger and ranged or melee ) .. " )",
-        Melee = "RollBonus( MeleeWeaponAttack, " .. melee .. " );RollBonus( MeleeOffHandWeaponAttack, " .. melee .. " )",
-        Ranged = "RollBonus( RangedWeaponAttack, " .. ranged .. " );RollBonus( RangedOffHandWeaponAttack, " .. ranged .. " )"
-    }
-end
 
 --- @type table < string, boolean >
 _V.Spells = {}
@@ -81,5 +59,28 @@ for _,name in pairs( Ext.Stats.GetStats( "SpellData" ) ) do
         end
     end
 end
+
+_V.Status = function( weight )
+    weight = weight or 0
+    local base = "RewrittenDualWielding"
+    return {
+        Base = base,
+        PenaltyMelee = base .. "LostFootingMelee" .. weight,
+        PenaltyRanged = base .. "LostFootingRanged" .. weight,
+        PenaltyTwoWeaponMelee = base .. "LostFootingTwoWeaponMelee" .. weight,
+        PenaltyTwoWeaponRanged = base .. "LostFootingTwoWeaponRanged" .. weight,
+        MeleeMain = base .. "MeleeMain" .. weight,
+        RangedMain = base .. "RangedMain" .. weight,
+        MeleeOff = base .. "MeleeOff" .. weight,
+        RangedOff = base .. "RangedOff" .. weight,
+        MeleeTwoWeaponMain = base .. "MeleeTwoWeaponMain" .. weight,
+        RangedTwoWeaponMain = base .. "RangedTwoWeaponMain" .. weight,
+        MeleeTwoWeaponOff = base .. "MeleeTwoWeaponOff" .. weight,
+        RangedTwoWeaponOff = base .. "RangedTwoWeaponOff" .. weight
+    }
+end
+
+--- @type table< number, boolean >
+_V.Weights = {}
 
 return _V

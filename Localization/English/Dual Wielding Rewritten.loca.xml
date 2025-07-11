@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<contentList>
+	<content contentuid="h548f722ed45a4f2884dbb90e778e1fb4e12d" version="1">Lost Footing</content>
+	<content contentuid="h6568bed6a92f4137ab6dfcf00d93ef6ad603" version="1">The affected entity has missed an &lt;LSTag Tooltip="AttackRoll"&gt;Attack Roll&lt;/LSTag&gt; while dual-wielding and will suffer an &lt;LSTag Tooltip="ArmourClass"&gt;Armour Class&lt;/LSTag&gt; penalty and be unable to use off-hand attacks.&lt;br&gt;&lt;br&gt;Removed when &lt;LSTag Tooltip="Target_Help"&gt;Helped&lt;/LSTag&gt;, taking damage, or at the start of the turn.</content>
+	<content contentuid="h4b5c93a924be436fb848aba0569c02035cg3" version="1">Non-Proficient Dual-Wielding</content>
+	<content contentuid="h67baff50fc6f4d6987de105926be4a5aef2a" version="1">Dual-Wielding</content>
+	<content contentuid="hae35af5067ca4c2cbd184564272886c9d169" version="1">The affected entity is currently using a twin-weapon fighting stance, and can generate off-hand mirror attacks.&lt;br&gt;&lt;br&gt;Weapon pairs being dual-wielded suffer an &lt;LSTag Tooltip="AttackRoll"&gt;Attack&lt;/LSTag&gt; penalty in relation to their weight.</content>
+</contentList>

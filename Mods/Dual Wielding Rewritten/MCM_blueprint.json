@@ -22,7 +22,7 @@
                     "Type": "slider_float",
                     "Options": { "Max": 1.0, "Min": 0.0 },
                     "Default": 0.33,
-                    "Tooltip": "With the Two Weapon Fighting Fighting Style reduce the AC and Attack Roll penalties by X%."
+                    "Tooltip": "With the Two Weapon Fighting Fighting Style the dual-wielding penalties apply at X%."
                 }
             ]
         }

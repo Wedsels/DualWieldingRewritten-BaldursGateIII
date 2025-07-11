@@ -60,7 +60,9 @@ return function( _V )
                 end
             end
 
-            Osi.SetWeaponUnsheathed( uuid, 0, 1 )
+            if next( equip.Returns ) then
+                Osi.SetWeaponUnsheathed( uuid, 0, 1 )
+            end
         end,
         Remove = function( uuid )
             uuid = _F.UUID( uuid )
@@ -76,42 +78,78 @@ return function( _V )
         end
     }
 
-    _F.Boost = function( uuid, boost )
-        local function Check( type )
-            local dual = _V.Duals[ uuid ]
+    _F.Status = function( uuid )
+        local Check
+        Check = function( type, status )
+            local wield = _V.Duals[ uuid ]
             local ent = Ext.Entity.Get( uuid )
-            if not dual or not ent then return end
+            if not wield or not ent then return end
 
-            local b = _V.Boosts( uuid )
-            if not b then return end
-            local boo = b[ boost ]
-            if type ~= 2 and boo == dual.Boost[ boost ] or type == 0 and dual.Boost[ boost ] == "" then return end
+            local two = Osi.HasPassive( uuid, "FightingStyle_TwoWeaponFighting" ) == 1
 
-            if dual.Boost[ boost ] then
-                Osi.RemoveBoosts( uuid, dual.Boost[ boost ], 0, _V.Key, "" )
+            local statuses = {}
+
+            if status == "Base" then
+                statuses = { _V.Status().Base }
+            elseif status == "Penalty" then
+                local s = _V.Status( wield.Equip.Ranger and math.max( wield.Equip.RangedMain, wield.Equip.RangedOffhand ) or math.max( wield.Equip.MeleeMain, wield.Equip.MeleeOffhand ) )
+                statuses = wield.Equip.Ranger and ( two and { s.PenaltyTwoWeaponRanged } or { s.PenaltyRanged } ) or ( two and { s.PenaltyTwoWeaponMelee } or { s.PenaltyMelee } )
+            elseif status == "Melee" then
+                local m = _V.Status( wield.Equip.MeleeMain )
+                local o = _V.Status( wield.Equip.MeleeOffhand )
+                statuses = two and { m.MeleeTwoWeaponMain, o.MeleeTwoWeaponOff } or { m.MeleeMain, o.MeleeOff }
+            elseif status == "Ranged" then
+                local m = _V.Status( wield.Equip.RangedMain )
+                local o = _V.Status( wield.Equip.RangedOffhand )
+                statuses = two and { m.RangedTwoWeaponMain, o.RangedTwoWeaponOff } or { m.RangedMain, o.RangedOff }
             end
 
-            if type == 2 then
-                dual.Boost[ boost ] = ""
-            else
-                dual.Boost[ boost ] = boo
-                Osi.AddBoosts( uuid, boo, _V.Key, "" )
-                if boo:find( " 0 " ) then
-                    Ext.Timer.WaitFor( 500, function() Osi.RemoveBoosts( uuid, boo, 0, _V.Key, "" ) end )
+            if type == 1 and wield.Status[ status ] then
+                local all = true
+                for i,n in ipairs( statuses ) do
+                    if wield.Status[ status ][ i ] ~= n then
+                        all = false
+                        break
+                    end
                 end
+                if all then return end
+            end
+
+            if type == 0 and wield.Status[ status ] then
+                Check( 2, status )
+                Ext.Timer.WaitFor( 500, function() Check( 1, status ) end )
+            elseif type == 1 then
+                for _,s in ipairs( statuses ) do
+                    Osi.ApplyStatus( uuid, s, -1 )
+                end
+
+                wield.Status[ status ] = statuses
+            elseif type == 2 and wield.Status[ status ] then
+                for _,s in ipairs( wield.Status[ status ] ) do
+                    Osi.RemoveStatus( uuid, s )
+                end
+
+                wield.Status[ status ] = nil
             end
         end
 
+        local function Apply( status )
+            return {
+                Update = function() Check( 0, status ) end,
+                Apply = function() Check( 1, status ) end,
+                Remove = function() Check( 2, status ) end
+            }
+        end
+
         return {
-            Update = function() Check( 0 ) end,
-            Apply = function() Check( 1 ) end,
-            Remove = function() Check( 2 ) end
+            Base = Apply( "Base" ),
+            Penalty = Apply( "Penalty" ),
+            Melee = Apply( "Melee" ),
+            Ranged = Apply( "Ranged" )
         }
     end
 
-    _F.RemoveDualEffects = function( uuid )
-        _F.Boost( uuid, "Penalty" ).Remove()
-
+    _F.RemoveSpells = function( uuid )
         local ent = Ext.Entity.Get( uuid )
         if not ent then return end
 
@@ -123,6 +161,11 @@ return function( _V )
                 _F.ExchangeSpell( uuid, i.Id.Prototype )
             end
         end
+    end
+
+    _F.RemoveDualEffects = function( uuid )
+        _F.Status( uuid ).Penalty.Remove()
+        _F.RemoveSpells( uuid )
     end
 
     _F.MainOff = function( str, type )
@@ -190,33 +233,45 @@ return function( _V )
         local dual = ent:GetComponent( "DualWielding" )
         if not dual then return end
 
-        _V.Duals[ uuid ] = _V.Duals[ uuid ] or {
-            Ranged = false,
-            Melee = false,
-            Time = -1,
-            Boost = {},
-            Data = {},
-            Equip = {
-                Melee = {},
-                Ranged = {},
-                Returns = {},
+        if not _V.Duals[ uuid ] then
+            _V.Duals[ uuid ] = {
+                Ranged = false,
+                Melee = false,
+                Time = -1,
+                Status = {},
+                Data = {},
+                Equip = {
+                    Ranger = false,
+                    Melee = {},
+                    MeleeMain = 0,
+                    MeleeOffhand = 0,
+                    Ranged = {},
+                    RangedMain = 0,
+                    RangedOffhand = 0,
+                    Returns = {}
+                },
+                Generate = true
             }
-        }
-        local d = _V.Duals[ uuid ]
-
-        local function weight( type )
-            local main = Ext.Entity.Get( Osi.GetEquippedItem( uuid, type .. " Main Weapon" ) )
-            local off = Ext.Entity.Get( Osi.GetEquippedItem( uuid, type .. " Offhand Weapon" ) )
-            if main and off then return main.Data.Weight + off.Data.Weight end
-            return 0
         end
+
+        local d = _V.Duals[ uuid ]
 
         local rangemain = Osi.GetEquippedItem( uuid, "Ranged Main Weapon" )
         d.Equip.Ranger = rangemain == Osi.GetEquippedWeapon( uuid )
-        d.Equip.MeleeWeight = weight( "Melee" )
-        d.Equip.RangedWeight = weight( "Ranged" )
 
-        _F.Boost( uuid, "Base" ).Apply()
+        for _,w in ipairs( { "Melee", "Ranged" } ) do
+            for _,h in ipairs( { "Main", "Offhand" } ) do
+                local data = Ext.Entity.Get( Osi.GetEquippedItem( uuid, w .. " " .. h .. " Weapon" ) )
+                if data then
+                    _F.CreateStatus( data.Data.Weight )
+                    d.Equip[ w .. h ] = data.Data.Weight
+                else
+                    d.Equip[ w .. h ] = 0
+                end
+            end
+        end
+
+        _F.Status( uuid ).Base.Apply()
 
         for _,i in ipairs( { "Ranged", "Melee" } ) do
             if not dual[ i .. "UI" ] then
@@ -227,10 +282,16 @@ return function( _V )
             end
 
             if d[ i ] then
-                _F.Boost( uuid, i ).Apply()
+                _F.Status( uuid )[ i ].Apply()
             else
-                _F.Boost( uuid, i ).Remove()
+                _F.Status( uuid )[ i ].Remove()
             end
+        end
+
+        if d.Melee or d.Ranged then
+            _F.Status( uuid ).Base.Apply()
+        else
+            _F.Status( uuid ).Base.Remove()
         end
 
         dual.ToggledOn = false
@@ -339,11 +400,79 @@ return function( _V )
         end
     end
 
+    _F.CreateStatus = function( weight )
+        if not weight or weight <= 0 or _V.Weights[ weight ] then return end
+        _V.Weights[ weight ] = true
+
+        local w = _V.Status( weight )
+        for key,val in pairs( w ) do
+            w[ key ] = _F.CreateStat( val, "StatusData" )
+        end
+
+        for _,i in ipairs( { w.PenaltyMelee, w.PenaltyRanged, w.PenaltyTwoWeaponMelee, w.PenaltyTwoWeaponRanged } ) do
+            i.StatusType = "BOOST"
+            i.Icon = "statIcons_OffBalanced"
+            i.DisplayName = "h548f722ed45a4f2884dbb90e778e1fb4e12d;1"
+            i.Description = "h6568bed6a92f4137ab6dfcf00d93ef6ad603;1"
+            i.StillAnimationType = "Weakened"
+            i.StillAnimationPriority = "Weakened"
+            i.RemoveEvents = { "OnAttacked" }
+            i.RemoveConditions = "IsAttack() and HasDamageEffectFlag( DamageFlags.Hit )"
+            i.StackId = "DWRPenalty"
+            i.StatusGroups = { "SG_Helpable_Condition" }
+        end
+
+        for _,i in ipairs( { w.MeleeMain, w.MeleeOff, w.MeleeTwoWeaponMain, w.MeleeTwoWeaponOff, w.RangedMain, w.RangedOff, w.RangedTwoWeaponMain, w.RangedTwoWeaponOff } ) do
+            i.StatusType = "BOOST"
+            i.StatusPropertyFlags = { "DisableOverhead", "DisableCombatlog", "DisablePortraitIndicator", "IgnoreResting" }
+            i.DisplayName = i.Name:find( "TwoWeapon" ) and "h67baff50fc6f4d6987de105926be4a5aef2a;1" or "h4b5c93a924be436fb848aba0569c02035cg3;1"
+            i.StackId = "DWR" .. ( i.Name:find( "Melee" ) and "Melee" or "Ranged" ) .. ( i.Name:find( "Main" ) and "Main" or "Off" )
+        end
+
+        _F.UpdateStatus( weight )
+    end
+
+    _F.UpdateStatus = function( single )
+        local function stat( weight, boost, twoweapon )
+            return boost .. " " .. -math.floor( ( 2 + weight ^ 0.5 * 0.1 ) * _V.Penalty * ( twoweapon and _V.TwoWeaponFighting or 1.0 ) + 0.5 ) .. " )"
+        end
+
+        for weight,_ in pairs( single and { [ single ] = true } or _V.Weights ) do
+            local w = _V.Status( weight )
+            for key,val in pairs( w ) do
+                w[ key ] = Ext.Stats.Get( val )
+            end
+
+            w.PenaltyMelee.Boosts = stat( weight, "AC(" )
+            w.PenaltyRanged.Boosts = stat( weight, "AC(" )
+
+            w.PenaltyTwoWeaponMelee.Boosts = stat( weight, "AC(", true )
+            w.PenaltyTwoWeaponRanged.Boosts = stat( weight, "AC(", true )
+
+            w.MeleeMain.Boosts = stat( weight, "RollBonus( MeleeWeaponAttack," )
+            w.MeleeOff.Boosts = stat( weight, "RollBonus( MeleeOffHandWeaponAttack," )
+
+            w.MeleeTwoWeaponMain.Boosts = stat( weight, "RollBonus( MeleeWeaponAttack,", true )
+            w.MeleeTwoWeaponOff.Boosts = stat( weight, "RollBonus( MeleeOffHandWeaponAttack,", true )
+
+            w.RangedMain.Boosts = stat( weight, "RollBonus( RangedWeaponAttack," )
+            w.RangedOff.Boosts = stat( weight, "RollBonus( RangedOffHandWeaponAttack," )
+
+            w.RangedTwoWeaponMain.Boosts = stat( weight, "RollBonus( RangedWeaponAttack,", true )
+            w.RangedTwoWeaponOff.Boosts = stat( weight, "RollBonus( RangedOffHandWeaponAttack,", true )
+
+            for _,val in pairs( w ) do
+                --- @diagnostic disable-next-line: undefined-field
+                val:Sync()
+            end
+        end
+    end
+
     _F.UpdateText = function()
         Ext.Loca.UpdateTranslatedString(
             "h5153f9f3g7dcbg45d9gae1bgd19f398959a2",
             "Improve stability and become more adept at twin weapons.\n\n" ..
-            "The Dual Wielding <LSTag Tooltip=\"AttackRoll\">Accuracy</LSTag> and <LSTag Tooltip=\"ArmourClass\">Armour Class</LSTag> penalties apply at " .. _V.TwoWeaponFighting * 100.0 .. "% of their normal effect."
+            "The dual-wielding <LSTag Tooltip=\"AttackRoll\">Accuracy</LSTag> and <LSTag Tooltip=\"ArmourClass\">Armour Class</LSTag> penalties apply at " .. string.format( "%.0f", _V.TwoWeaponFighting * 100.0 ) .. "% of their normal effect."
         )
     end
 
