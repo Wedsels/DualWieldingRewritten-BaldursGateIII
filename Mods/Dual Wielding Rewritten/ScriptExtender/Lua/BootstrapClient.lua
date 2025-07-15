@@ -22,10 +22,6 @@ Ext.Events.StatsLoaded:Subscribe(
             local source
             if two == "Small1H" then
                 source = Sources.Sword
-            elseif one == "Slashing1H" or one == "Small1H" then
-                source = Sources.Sword
-            elseif one == "Javelin1H" or one == "Slashing1H" or one == "Piercing1H" then
-                source = Sources.Spear
             elseif two == "Polearm2H" or two == "Spear2H" then
                 one = "Javelin1H"
                 source = Sources.Spear
@@ -35,6 +31,10 @@ Ext.Events.StatsLoaded:Subscribe(
             elseif two == "Generic2H" then
                 one = "Slashing1H"
                 source = Sources.Sword
+            elseif one == "Slashing1H" or one == "Small1H" then
+                source = Sources.Sword
+            elseif one == "Javelin1H" or one == "Slashing1H" or one == "Piercing1H" then
+                source = Sources.Spear
             end
 
             if source then

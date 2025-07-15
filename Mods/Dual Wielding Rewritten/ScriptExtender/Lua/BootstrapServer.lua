@@ -5,6 +5,7 @@ local _H = require( "Server.Hooks" )( _V, _F )
 if MCM then
     _V.Penalty = MCM.Get( "Penalty" )
     _V.TwoWeaponFighting = MCM.Get( "TwoWeaponFighting" )
+    _V.LostFooting = MCM.Get( "LostFooting" )
 
     Ext.ModEvents.BG3MCM[ "MCM_Setting_Saved" ]:Subscribe(
         function( payload )
