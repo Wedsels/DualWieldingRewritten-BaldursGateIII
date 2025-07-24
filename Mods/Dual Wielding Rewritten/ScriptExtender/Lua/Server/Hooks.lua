@@ -68,9 +68,7 @@ return function( _V,  _F )
                 return
             end
 
-            _F.RemoveSpells( uuid )
             _F.Status( uuid ).Penalty.Apply()
-            wield.Time = Ext.Utils.MonotonicTime()
         end
     )
 
@@ -80,8 +78,13 @@ return function( _V,  _F )
                 uuid = _F.UUID( uuid )
                 local wield = _V.Duals[ uuid ]
 
-                if not wield or not status:find( "LostFooting" ) then
+                if not wield or not status:find( _V.Status().Base .. "LostFooting" ) then
                     return
+                end
+
+                if not type then
+                    _F.RemoveSpells( uuid )
+                    wield.Time = Ext.Utils.MonotonicTime()
                 end
 
                 wield.Generate = type

@@ -262,9 +262,9 @@ return function( _V )
         for _,w in ipairs( { "Melee", "Ranged" } ) do
             for _,h in ipairs( { "Main", "Offhand" } ) do
                 local data = Ext.Entity.Get( Osi.GetEquippedItem( uuid, w .. " " .. h .. " Weapon" ) )
-                if data then
-                    _F.CreateStatus( data.Data.Weight )
-                    d.Equip[ w .. h ] = data.Data.Weight
+                local weapon = data and data.Data and Ext.Stats.Get( data.Data.StatsId )
+                if weapon then
+                    d.Equip[ w .. h ] = weapon.Weight
                 else
                     d.Equip[ w .. h ] = 0
                 end
@@ -400,70 +400,70 @@ return function( _V )
         end
     end
 
-    _F.CreateStatus = function( weight )
-        if not weight or weight <= 0 or _V.Weights[ weight ] then return end
-        _V.Weights[ weight ] = true
-
-        local w = _V.Status( weight )
-        for key,val in pairs( w ) do
-            w[ key ] = _F.CreateStat( val, "StatusData" )
-        end
-
-        for _,i in ipairs( { w.PenaltyMelee, w.PenaltyRanged, w.PenaltyTwoWeaponMelee, w.PenaltyTwoWeaponRanged } ) do
-            i.StatusType = "BOOST"
-            i.Icon = "statIcons_OffBalanced"
-            i.DisplayName = "h548f722ed45a4f2884dbb90e778e1fb4e12d;1"
-            i.Description = "h6568bed6a92f4137ab6dfcf00d93ef6ad603;1"
-            i.StillAnimationType = "Weakened"
-            i.StillAnimationPriority = "Weakened"
-            i.RemoveEvents = { "OnAttacked" }
-            i.RemoveConditions = "IsAttack() and HasDamageEffectFlag( DamageFlags.Hit )"
-            i.StackId = "DWRPenalty"
-            i.StatusGroups = { "SG_Helpable_Condition" }
-        end
-
-        for _,i in ipairs( { w.MeleeMain, w.MeleeOff, w.MeleeTwoWeaponMain, w.MeleeTwoWeaponOff, w.RangedMain, w.RangedOff, w.RangedTwoWeaponMain, w.RangedTwoWeaponOff } ) do
-            i.StatusType = "BOOST"
-            i.StatusPropertyFlags = { "DisableOverhead", "DisableCombatlog", "DisablePortraitIndicator", "IgnoreResting" }
-            i.DisplayName = i.Name:find( "TwoWeapon" ) and "h67baff50fc6f4d6987de105926be4a5aef2a;1" or "h4b5c93a924be436fb848aba0569c02035cg3;1"
-            i.StackId = "DWR" .. ( i.Name:find( "Melee" ) and "Melee" or "Ranged" ) .. ( i.Name:find( "Main" ) and "Main" or "Off" )
-        end
-
-        _F.UpdateStatus( weight )
-    end
-
-    _F.UpdateStatus = function( single )
+    _F.CreateStatuses = function()
         local function stat( weight, boost, twoweapon )
-            return boost .. " " .. -math.floor( ( 2 + weight ^ 0.5 * 0.1 ) * _V.Penalty * ( twoweapon and _V.TwoWeaponFighting or 1.0 ) + 0.5 ) .. " )"
-        end
-
-        for weight,_ in pairs( single and { [ single ] = true } or _V.Weights ) do
-            local w = _V.Status( weight )
-            for key,val in pairs( w ) do
-                w[ key ] = Ext.Stats.Get( val )
+            weight = 1.5 + weight * 3
+            weight = math.floor( weight + 0.5 )
+            weight = weight * _V.Penalty
+            if twoweapon then
+                weight = weight * _V.TwoWeaponFighting
             end
 
-            w.PenaltyMelee.Boosts = stat( weight, "AC(" )
-            w.PenaltyRanged.Boosts = stat( weight, "AC(" )
+            return boost .. " " .. string.format( "%.0f", -weight ) .. " )"
+        end
 
-            w.PenaltyTwoWeaponMelee.Boosts = stat( weight, "AC(", true )
-            w.PenaltyTwoWeaponRanged.Boosts = stat( weight, "AC(", true )
+        for _,n in ipairs( Ext.Stats.GetStats( "Weapon" ) ) do
+            local item = Ext.Stats.Get( n )
+            local weight = item.Weight
 
-            w.MeleeMain.Boosts = stat( weight, "RollBonus( MeleeWeaponAttack," )
-            w.MeleeOff.Boosts = stat( weight, "RollBonus( MeleeOffHandWeaponAttack," )
+            if weight then
+                local w = _V.Status( weight )
+                for key,val in pairs( w ) do
+                    w[ key ] = _F.CreateStat( val, "StatusData" )
+                end
 
-            w.MeleeTwoWeaponMain.Boosts = stat( weight, "RollBonus( MeleeWeaponAttack,", true )
-            w.MeleeTwoWeaponOff.Boosts = stat( weight, "RollBonus( MeleeOffHandWeaponAttack,", true )
+                for _,i in ipairs( { w.PenaltyMelee, w.PenaltyRanged, w.PenaltyTwoWeaponMelee, w.PenaltyTwoWeaponRanged } ) do
+                    i.StatusType = "BOOST"
+                    i.Icon = "statIcons_OffBalanced"
+                    i.DisplayName = "h548f722ed45a4f2884dbb90e778e1fb4e12d"
+                    i.Description = "h6568bed6a92f4137ab6dfcf00d93ef6ad603"
+                    i.StillAnimationType = "Weakened"
+                    i.StillAnimationPriority = "Weakened"
+                    i.RemoveEvents = { "OnAttacked" }
+                    i.RemoveConditions = "IsAttack() and HasDamageEffectFlag( DamageFlags.Hit )"
+                    i.StackId = "DWRPenalty"
+                    i.StatusGroups = { "SG_Helpable_Condition" }
+                end
 
-            w.RangedMain.Boosts = stat( weight, "RollBonus( RangedWeaponAttack," )
-            w.RangedOff.Boosts = stat( weight, "RollBonus( RangedOffHandWeaponAttack," )
+                for _,i in ipairs( { w.MeleeMain, w.MeleeOff, w.MeleeTwoWeaponMain, w.MeleeTwoWeaponOff, w.RangedMain, w.RangedOff, w.RangedTwoWeaponMain, w.RangedTwoWeaponOff } ) do
+                    i.StatusType = "BOOST"
+                    i.StatusPropertyFlags = { "DisableOverhead", "DisableCombatlog", "DisablePortraitIndicator", "IgnoreResting" }
+                    i.DisplayName = i.Name:find( "TwoWeapon" ) and "h67baff50fc6f4d6987de105926be4a5aef2a" or "h4b5c93a924be436fb848aba0569c02035cg3"
+                    i.StackId = "DWR" .. ( i.Name:find( "Melee" ) and "Melee" or "Ranged" ) .. ( i.Name:find( "Main" ) and "Main" or "Off" )
+                end
 
-            w.RangedTwoWeaponMain.Boosts = stat( weight, "RollBonus( RangedWeaponAttack,", true )
-            w.RangedTwoWeaponOff.Boosts = stat( weight, "RollBonus( RangedOffHandWeaponAttack,", true )
+                w.PenaltyMelee.Boosts = stat( weight, "AC(" )
+                w.PenaltyRanged.Boosts = stat( weight, "AC(" )
 
-            for _,val in pairs( w ) do
-                --- @diagnostic disable-next-line: undefined-field
-                val:Sync()
+                w.PenaltyTwoWeaponMelee.Boosts = stat( weight, "AC(", true )
+                w.PenaltyTwoWeaponRanged.Boosts = stat( weight, "AC(", true )
+
+                w.MeleeMain.Boosts = stat( weight, "RollBonus( MeleeWeaponAttack," )
+                w.MeleeOff.Boosts = stat( weight, "RollBonus( MeleeOffHandWeaponAttack," )
+
+                w.MeleeTwoWeaponMain.Boosts = stat( weight, "RollBonus( MeleeWeaponAttack,", true )
+                w.MeleeTwoWeaponOff.Boosts = stat( weight, "RollBonus( MeleeOffHandWeaponAttack,", true )
+
+                w.RangedMain.Boosts = stat( weight, "RollBonus( RangedWeaponAttack," )
+                w.RangedOff.Boosts = stat( weight, "RollBonus( RangedOffHandWeaponAttack," )
+
+                w.RangedTwoWeaponMain.Boosts = stat( weight, "RollBonus( RangedWeaponAttack,", true )
+                w.RangedTwoWeaponOff.Boosts = stat( weight, "RollBonus( RangedOffHandWeaponAttack,", true )
+
+                for _,val in pairs( w ) do
+                    --- @diagnostic disable-next-line: undefined-field
+                    val:Sync()
+                end
             end
         end
     end

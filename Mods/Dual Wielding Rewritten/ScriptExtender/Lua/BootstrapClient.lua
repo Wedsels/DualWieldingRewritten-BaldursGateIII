@@ -164,7 +164,7 @@ Ext.Events.StatsLoaded:Subscribe(
                     "35f5cba8-3706-46d5-9a1e-2def9ba22473,,;" ..
                     "0b07883a-08b8-43b6-ac18-84dc9e84ff50,,;,,;,,"
                 off.DualWieldingSpellAnimation = off.SpellAnimation
-                off.DisplayName = "h3b04f82ag28deg481agb077gaacc255f4caf;1"
+                off.DisplayName = "h3b04f82ag28deg481agb077gaacc255f4caf"
             end
 
             off.UseCosts = ""
@@ -204,10 +204,12 @@ Ext.Events.StatsLoaded:Subscribe(
         local base = Ext.Stats.Create( _V.Status().Base, "StatusData" )
         base.StatusType = "BOOST"
         base.Icon = "PassiveFeature_MartialAdept"
-        base.DisplayName = "h67baff50fc6f4d6987de105926be4a5aef2a;1"
-        base.Description = "hae35af5067ca4c2cbd184564272886c9d169;1"
+        base.DisplayName = "h67baff50fc6f4d6987de105926be4a5aef2a"
+        base.Description = "hae35af5067ca4c2cbd184564272886c9d169"
         base.Boosts = "TwoWeaponFighting()"
         base.StackId = base.Name
         base.StatusPropertyFlags = { "DisableOverhead", "DisableCombatlog", "IgnoreResting" }
+
+        _F.CreateStatuses()
     end
 )

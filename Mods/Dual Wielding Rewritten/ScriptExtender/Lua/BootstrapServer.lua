@@ -15,7 +15,7 @@ if MCM then
 
             _V[ payload.settingId ] = payload.value
 
-            _F.UpdateStatus()
+            _F.CreateStatuses()
 
             for uuid,wield in pairs( _V.Duals ) do
                 for _,boost in pairs( _F.Status( uuid ) ) do
