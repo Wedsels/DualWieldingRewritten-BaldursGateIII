@@ -68,8 +68,8 @@ Ext.Events.StatsLoaded:Subscribe(
             for _,p in ipairs( item[ "Weapon Properties" ] ) do
                 if p == "Melee" or p == "Light" then
                     melee = true
-                    item.BoostsOnEquipOffHand = item.BoostsOnEquipMainHand
-                    item.PassivesOffHand = item.PassivesMainHand
+                    item.BoostsOnEquipOffHand = item.BoostsOnEquipMainHand .. ";" .. item.BoostsOnEquipOffHand
+                    item.PassivesOffHand = item.PassivesMainHand .. ";" .. item.PassivesOffHand
                 elseif p == "Versatile" then
                     goto continue
                 end
@@ -179,6 +179,8 @@ Ext.Events.StatsLoaded:Subscribe(
             end
             if string.find( off.AlternativeCastTextEvents, "CastOffhand" ) then
                 off.CastTextEvent = "CastOffhand"
+            else
+                off.AlternativeCastTextEvents = "CastOffhand;" .. off.AlternativeCastTextEvents
             end
 
             local flags = spell.SpellFlags
