@@ -190,39 +190,40 @@ return function( _V )
             for key,i in pairs( roll ) do
                 roll[ key ] = _F.MainOff( i, type )
             end
+            roll[ "CastOffhand" ] = roll[ "Default" ] or roll[ "Cast" ]
             spell.SpellRoll = roll
         end
         if spell.SpellProperties then
             for _,p in ipairs( spell.SpellProperties ) do
-                if p.TextKey == "CastOffhand" then
-                    p.TextKey = "Disabled"
-                else
+                -- if p.TextKey == "CastOffhand" then
+                --     p.TextKey = "Default"
+                -- else
                     for _,f in ipairs( p.Functors ) do
                         f.FunctorUuid = _F.GenerateUUID()
                         pcall( function() f.WeaponType = _F.MainOff( f.WeaponType, type ) end )
                         pcall( function() if f.ProjectileSpell == name then f.ProjectileSpell = name .. _V.Off end end )
                     end
-                end
+                -- end
             end
         end
         if spell.SpellSuccess then
             for _,e in ipairs( spell.SpellSuccess ) do
-                if e.TextKey == "CastOffhand" then
-                    e.TextKey = "Disabled"
-                else
+                -- if e.TextKey == "CastOffhand" then
+                --     e.TextKey = "Default"
+                -- else
                     for _,i in ipairs( e.Functors ) do
                         pcall( function() i.WeaponType = _F.MainOff( i.WeaponType, type ) end )
                     end
-                end
+                -- end
             end
         end
-        if spell.SpellFail then
-            for _,e in ipairs( spell.SpellFail ) do
-                if e.TextKey == "CastOffhand" then
-                    e.TextKey = "Disabled"
-                end
-            end
-        end
+        -- if spell.SpellFail then
+        --     for _,e in ipairs( spell.SpellFail ) do
+        --         if e.TextKey == "CastOffhand" then
+        --             e.TextKey = "Default"
+        --         end
+        --     end
+        -- end
 
         spell:Sync()
     end

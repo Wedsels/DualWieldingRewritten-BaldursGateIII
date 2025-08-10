@@ -181,6 +181,18 @@ Ext.Events.StatsLoaded:Subscribe(
                 off.CastTextEvent = "CastOffhand"
             else
                 off.AlternativeCastTextEvents = "CastOffhand;" .. off.AlternativeCastTextEvents
+                if off.SpellProperties and off.SpellProperties[ 1 ] then
+                    off.SpellProperties[ #off.SpellProperties + 1 ] = off.SpellProperties[ 1 ]
+                    off.SpellProperties[ #off.SpellProperties ].TextKey = "CastOffhand"
+                end
+                if off.SpellSuccess and off.SpellSuccess[ 1 ] then
+                    off.SpellSuccess[ #off.SpellSuccess + 1 ] = off.SpellSuccess[ 1 ]
+                    off.SpellSuccess[ #off.SpellSuccess ].TextKey = "CastOffhand"
+                end
+                if off.SpellFail and off.SpellFail[ 1 ] then
+                    off.SpellFail[ #off.SpellFail + 1 ] = off.SpellFail[ 1 ]
+                    off.SpellFail[ #off.SpellFail ].TextKey = "CastOffhand"
+                end
             end
 
             local flags = spell.SpellFlags
