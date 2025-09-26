@@ -118,7 +118,7 @@ return function( _V,  _F )
     Ext.Events.Tick:Subscribe(
         function()
             for uuid,wield in pairs( _V.Duals ) do
-                if wield.Time > -1 and #wield.Data > 0 and not _F.InCombat( uuid ) then
+                if ( wield.Time > -1 or #wield.Data > 0 ) and not _F.InCombat( uuid ) then
                     if wield.Time > 0 and Ext.Utils.MonotonicTime() - wield.Time > 5000 then
                         _F.Status( uuid ).Penalty.Remove()
                         wield.Time = -1
