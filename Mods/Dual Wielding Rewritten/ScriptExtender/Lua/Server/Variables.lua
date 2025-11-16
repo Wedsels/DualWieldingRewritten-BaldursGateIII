@@ -39,16 +39,6 @@ _V.Spells = {}
 for _,name in pairs( Ext.Stats.GetStats( "SpellData" ) ) do
     local spell = Ext.Stats.Get( name )
 
-    spell.RequirementConditions:gsub( "HasWeaponProperty(WeaponProperties.Twohanded, weapon)", "HasVersatileTwoHanded()" ):gsub( "WieldingWeapon('Twohanded', false, false, entity)", "HasVersatileTwoHanded()" )
-
-    local types = {}
-    for _, weapon in ipairs( spell.WeaponTypes ) do
-        if weapon ~= "Twohanded" then
-            table.insert( types, weapon )
-        end
-    end
-    spell.WeaponTypes = types
-
     if not string.find( name, "AttackOfOpportunity" ) and not spell.InterruptPrototype or spell.InterruptPrototype == "" and string.sub( name, -#_V.Off ) ~= _V.Off and tostring( spell.CastTextEvent ) ~= "CastOffhand" then
         local type
         local val

@@ -111,6 +111,20 @@ Ext.Events.StatsLoaded:Subscribe(
             :: continue ::
         end
 
+        for _,name in pairs( Ext.Stats.GetStats( "SpellData" ) ) do
+            local spell = Ext.Stats.Get( name )
+
+            spell.RequirementConditions:gsub( "HasWeaponProperty(WeaponProperties.Twohanded, weapon)", "HasVersatileTwoHanded()" ):gsub( "WieldingWeapon('Twohanded', false, false, entity)", "HasVersatileTwoHanded()" )
+
+            local types = {}
+            for _, weapon in ipairs( spell.WeaponTypes ) do
+                if weapon ~= "Melee" then
+                    table.insert( types, weapon )
+                end
+            end
+            spell.WeaponTypes = types
+        end
+
         for name,type in pairs( _V.Spells ) do
             local spell = Ext.Stats.Get( name )
 
