@@ -118,7 +118,7 @@ Ext.Events.StatsLoaded:Subscribe(
 
             local types = {}
             for _, weapon in ipairs( spell.WeaponTypes ) do
-                if weapon ~= "Melee" then
+                if weapon ~= "Twohanded" then
                     table.insert( types, weapon )
                 end
             end
