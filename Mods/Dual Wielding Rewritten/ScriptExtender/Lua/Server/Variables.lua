@@ -1,3 +1,19 @@
+Ext.Vars.RegisterUserVariable(
+    "DualWieldingCache",
+    {
+        Server = true,
+        Client = false,
+        WriteableOnServer = true,
+        WriteableOnClient = false,
+        Persistent = true,
+        SyncToClient = false,
+        SyncToServer = false,
+        SyncOnTick = true,
+        SyncOnWrite = false,
+        DontCache = false,
+    }
+)
+
 --- @class _V
 local _V = {}
 
@@ -18,21 +34,26 @@ _V.LostFooting = true
 --- @field MeleeOffhand number
 --- @field RangedMain number
 --- @field RangedOffhand number
---- @field Melee table< userdata, userdata >
---- @field Ranged table< userdata, userdata >
---- @field Returns table< userdata >
+--- @field Melee table< any, any >
+--- @field Ranged table< any, any >
+--- @field Returns table< any >
 
 --- @class Wield
 --- @field Ranged boolean
 --- @field Melee boolean
 --- @field Time number
---- @field Equip Equip
 --- @field Status table < string, table< string > >
 --- @field Data table < string, Data >
 --- @field Generate boolean
 
---- @type table< string, Wield >
-_V.Duals = {}
+--- @class Entity
+--- @field Instance any
+--- @field Wield Wield
+--- @field Equip Equip
+--- @field Update function
+
+--- @type table< string, Entity >
+_V.Entities = {}
 
 --- @type table < string, boolean >
 _V.Spells = {}

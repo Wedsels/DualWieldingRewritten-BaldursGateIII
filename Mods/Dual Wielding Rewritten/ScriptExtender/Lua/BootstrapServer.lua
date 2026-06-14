@@ -17,7 +17,7 @@ if MCM then
 
             _F.CreateStatuses()
 
-            for uuid,wield in pairs( _V.Duals ) do
+            for uuid,wield in pairs( _V.Entities ) do
                 for _,boost in pairs( _F.Status( uuid ) ) do
                     boost.Update()
                 end

@@ -11,8 +11,8 @@ return function( _V )
         return Ext.Stats.Get( name ) or Ext.Stats.Create( name, type, source )
     end
 
-    _F.InCombat = function( uuid )
-        return Osi.IsInCombat( uuid ) == 1 or Osi.IsInForceTurnBasedMode( uuid ) == 1
+    _F.InCombat = function( ent )
+        return ent and ent.TurnBased and ent.TurnBased.CombatTeam ~= "00000000-0000-0000-0000-000000000000"
     end
 
     _F.UUID = function( target )
@@ -46,44 +46,46 @@ return function( _V )
     _F.Hip = {
         Apply = function( uuid )
             uuid = _F.UUID( uuid )
-            local equip = _V.Duals[ uuid ] and _V.Duals[ uuid ].Equip
-            if not uuid or not equip then return end
+            if not uuid then return end
+            local entity = _V.Entities[ uuid ]
+            if not entity then return end
 
-            if Osi.IsInCombat( uuid ) == 1 then return end
+            if _F.InCombat( entity.Instance ) then return end
 
-            for _,data in ipairs( equip.Ranger and equip.Ranged or equip.Melee ) do
+            for _,data in ipairs( entity.Equip.Ranger and entity.Equip.Ranged or entity.Equip.Melee ) do
                 local eq = Ext.StaticData.Get( data.Equipable.EquipmentTypeID, "EquipmentType" )
                 if eq.BoneMainSheathed == "Dummy_Sheath_Hip_L" then
-                    table.insert( equip.Returns, data )
+                    table.insert( entity.Equip.Returns, data )
+                    entity.Update()
+
                     data.Equipable.EquipmentTypeID = "2d85d633-d496-44a1-a643-0e95ef879a6d"
                     data:Replicate( "Equipable" )
                 end
             end
 
-            if next( equip.Returns ) then
+            if next( entity.Equip.Returns ) then
                 Osi.SetWeaponUnsheathed( uuid, 0, 1 )
             end
         end,
         Remove = function( uuid )
             uuid = _F.UUID( uuid )
-            local equip = _V.Duals[ uuid ] and _V.Duals[ uuid ].Equip
-            if not uuid or not equip then return end
+            local entity = _V.Entities[ uuid ]
+            if not uuid or not entity then return end
 
-            for _,data in ipairs( equip.Returns ) do
+            for _,data in ipairs( entity.Equip.Returns ) do
                 data.Equipable.EquipmentTypeID = data.ServerItem.Template.EquipmentTypeID
                 data:Replicate( "Equipable" )
             end
 
-            equip.Returns = {}
+            entity.Equip.Returns = {}
         end
     }
 
     _F.Status = function( uuid )
         local Check
         Check = function( type, status )
-            local wield = _V.Duals[ uuid ]
-            local ent = Ext.Entity.Get( uuid )
-            if not wield or not ent then return end
+            local entity = _V.Entities[ uuid ]
+            if not entity then return end
 
             local two = Osi.HasPassive( uuid, "FightingStyle_TwoWeaponFighting" ) == 1
 
@@ -92,22 +94,22 @@ return function( _V )
             if status == "Base" then
                 statuses = { _V.Status().Base }
             elseif status == "Penalty" then
-                local s = _V.Status( wield.Equip.Ranger and math.max( wield.Equip.RangedMain, wield.Equip.RangedOffhand ) or math.max( wield.Equip.MeleeMain, wield.Equip.MeleeOffhand ) )
-                statuses = wield.Equip.Ranger and ( two and { s.PenaltyTwoWeaponRanged } or { s.PenaltyRanged } ) or ( two and { s.PenaltyTwoWeaponMelee } or { s.PenaltyMelee } )
+                local s = _V.Status( entity.Equip.Ranger and math.max( entity.Equip.RangedMain, entity.Equip.RangedOffhand ) or math.max( entity.Equip.MeleeMain, entity.Equip.MeleeOffhand ) )
+                statuses = entity.Equip.Ranger and ( two and { s.PenaltyTwoWeaponRanged } or { s.PenaltyRanged } ) or ( two and { s.PenaltyTwoWeaponMelee } or { s.PenaltyMelee } )
             elseif status == "Melee" then
-                local m = _V.Status( wield.Equip.MeleeMain )
-                local o = _V.Status( wield.Equip.MeleeOffhand )
+                local m = _V.Status( entity.Equip.MeleeMain )
+                local o = _V.Status( entity.Equip.MeleeOffhand )
                 statuses = two and { m.MeleeTwoWeaponMain, o.MeleeTwoWeaponOff } or { m.MeleeMain, o.MeleeOff }
             elseif status == "Ranged" then
-                local m = _V.Status( wield.Equip.RangedMain )
-                local o = _V.Status( wield.Equip.RangedOffhand )
+                local m = _V.Status( entity.Equip.RangedMain )
+                local o = _V.Status( entity.Equip.RangedOffhand )
                 statuses = two and { m.RangedTwoWeaponMain, o.RangedTwoWeaponOff } or { m.RangedMain, o.RangedOff }
             end
 
-            if type == 1 and wield.Status[ status ] then
+            if type == 1 and entity.Wield.Status[ status ] then
                 local all = true
                 for i,n in ipairs( statuses ) do
-                    if wield.Status[ status ][ i ] ~= n then
+                    if entity.Wield.Status[ status ][ i ] ~= n then
                         all = false
                         break
                     end
@@ -115,7 +117,7 @@ return function( _V )
                 if all then return end
             end
 
-            if type == 0 and wield.Status[ status ] then
+            if type == 0 and entity.Wield.Status[ status ] then
                 Check( 2, status )
                 Ext.Timer.WaitFor( 500, function() Check( 1, status ) end )
             elseif type == 1 then
@@ -123,13 +125,14 @@ return function( _V )
                     Osi.ApplyStatus( uuid, s, -1 )
                 end
 
-                wield.Status[ status ] = statuses
-            elseif type == 2 and wield.Status[ status ] then
-                for _,s in ipairs( wield.Status[ status ] ) do
+                entity.Wield.Status[ status ] = statuses
+            elseif type == 2 and entity.Wield.Status[ status ] then
+                for _,s in ipairs( entity.Wield.Status[ status ] ) do
                     Osi.RemoveStatus( uuid, s )
                 end
 
-                wield.Status[ status ] = nil
+                entity.Wield.Status[ status ] = nil
+                entity.Update()
             end
         end
 
@@ -150,10 +153,10 @@ return function( _V )
     end
 
     _F.RemoveSpells = function( uuid )
-        local ent = Ext.Entity.Get( uuid )
-        if not ent then return end
+        local entity = _V.Entities[ uuid ]
+        if not entity then return end
 
-        local book = ent.SpellBook
+        local book = entity.Instance.SpellBook
         if not book then return end
 
         for _,i in ipairs( book.Spells ) do
@@ -229,45 +232,23 @@ return function( _V )
     end
 
     _F.CheckDualStatus = function( uuid )
-        local ent = Ext.Entity.Get( uuid )
-        if not ent then return end
-        local dual = ent:GetComponent( "DualWielding" )
+        uuid = _F.UUID( uuid )
+        local entity = _V.Entities[ uuid ]
+        if not entity then return end
+        local dual = entity.Instance.DualWielding
         if not dual then return end
 
-        if not _V.Duals[ uuid ] then
-            _V.Duals[ uuid ] = {
-                Ranged = false,
-                Melee = false,
-                Time = -1,
-                Status = {},
-                Data = {},
-                Equip = {
-                    Ranger = false,
-                    Melee = {},
-                    MeleeMain = 0,
-                    MeleeOffhand = 0,
-                    Ranged = {},
-                    RangedMain = 0,
-                    RangedOffhand = 0,
-                    Returns = {}
-                },
-                Generate = true
-            }
-        end
-
-        local d = _V.Duals[ uuid ]
-
         local rangemain = Osi.GetEquippedItem( uuid, "Ranged Main Weapon" )
-        d.Equip.Ranger = rangemain == Osi.GetEquippedWeapon( uuid )
+        entity.Equip.Ranger = rangemain == Osi.GetEquippedWeapon( uuid )
 
         for _,w in ipairs( { "Melee", "Ranged" } ) do
             for _,h in ipairs( { "Main", "Offhand" } ) do
                 local data = Ext.Entity.Get( Osi.GetEquippedItem( uuid, w .. " " .. h .. " Weapon" ) )
                 local weapon = data and data.Data and Ext.Stats.Get( data.Data.StatsId )
                 if weapon then
-                    d.Equip[ w .. h ] = weapon.Weight
+                    entity.Equip[ w .. h ] = weapon.Weight
                 else
-                    d.Equip[ w .. h ] = 0
+                    entity.Equip[ w .. h ] = 0
                 end
             end
         end
@@ -276,30 +257,31 @@ return function( _V )
 
         for _,i in ipairs( { "Ranged", "Melee" } ) do
             if not dual[ i .. "UI" ] then
-                d[ i ] = false
+                entity.Wield[ i ] = false
                 dual[ i .. "ToggledOn" ] = false
             else
-                d[ i ] = dual[ i .. "ToggledOn" ]
+                entity.Wield[ i ] = dual[ i .. "ToggledOn" ]
             end
 
-            if d[ i ] then
+            if entity.Wield[ i ] then
                 _F.Status( uuid )[ i ].Apply()
             else
                 _F.Status( uuid )[ i ].Remove()
             end
         end
 
-        if d.Melee or d.Ranged then
+        if entity.Wield.Melee or entity.Wield.Ranged then
             _F.Status( uuid ).Base.Apply()
         else
             _F.Status( uuid ).Base.Remove()
         end
 
         dual.ToggledOn = false
+        entity.Update()
     end
 
     _F.AddSpell = function( ent, uuid, spell )
-        if not ent then return end
+        if not ent or not ent.SpellBook then return end
 
         Osi.AddSpell( uuid, spell )
 
@@ -331,9 +313,8 @@ return function( _V )
 
     _F.ExchangeSpell = function( uuid, spell )
         uuid = _F.UUID( uuid )
-        local dual = _V.Duals[ uuid ]
-        local ent = Ext.Entity.Get( uuid )
-        if not ent or not dual then return end
+        local entity = _V.Entities[ uuid ]
+        if not entity then return end
 
         local offhand = _F.OffHandSpell( spell )
 
@@ -342,7 +323,7 @@ return function( _V )
 
         local name = ""
         if offhand then
-            local data = dual.Data[ spell ]
+            local data = entity.Wield.Data[ spell ]
 
             if data and data.Charge - 1 > 0 then
                 data.Charge = data.Charge - 1
@@ -354,22 +335,22 @@ return function( _V )
                 Osi.RemoveSpell( uuid, spell )
                 Osi.RemoveBoosts( uuid, "UnlockSpellVariant( SpellId( '" .. name .. "' ), ModifyIconGlow() )", 0, _V.Key, "" )
 
-                dual.Data[ spell ] = nil
+                entity.Wield.Data[ spell ] = nil
                 hotbar = true
                 container = origin.SpellContainerID
             end
         else
             name = spell .. _V.Off
-            local data = dual.Data[ name ]
+            local data = entity.Wield.Data[ name ]
 
             if data then
                 data.Charge = data.Charge + 1
             else
                 _F.CleanSpell( Ext.Stats.Get( name ), spell, false )
-                _F.AddSpell( ent, uuid, name )
+                _F.AddSpell( entity.Instance, uuid, name )
                 Osi.AddBoosts( uuid, "UnlockSpellVariant( SpellId( '" .. name .. "' ), ModifyIconGlow() )", _V.Key, "" )
 
-                dual.Data[ name ] = {
+                entity.Wield.Data[ name ] = {
                     Charge = 1,
                     Time = 0
                 }
@@ -379,7 +360,7 @@ return function( _V )
         end
 
         if hotbar then
-            local hot = ent:GetComponent( "HotbarContainer" )
+            local hot = entity.Instance.HotbarContainer
             if not hot then return end
 
             local usecontainer = offhand and container and container ~= ""
@@ -397,8 +378,10 @@ return function( _V )
             end
 
             :: done ::
-            ent:Replicate( "HotbarContainer" )
+            entity.Instance:Replicate( "HotbarContainer" )
         end
+
+        entity.Update()
     end
 
     _F.CreateStatuses = function()
